@@ -1,0 +1,36 @@
+{
+	"compilerOptions": {
+		"target": "ESNext",
+		"newLine": "lf",
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false,
+		"alwaysStrict": true,
+		"module": "ESNext",
+		"moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"rootDir": "src",
+		"outDir": "dist",
+		"removeComments": true,
+		"sourceMap": true,
+		"noUnusedParameters": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": true,
+		"pretty": true,
+		"strictNullChecks": true,
+		"strictFunctionTypes": true,
+		"noImplicitAny": true,
+		"strictPropertyInitialization": true,
+		"baseUrl": "src",
+		"paths": {
+			"@commands/*": ["commands/*"],
+			"@components/*": ["components/*"]
+		}
+	},
+	"exclude": ["node_modules", "dist"],
+	"include": ["src"],
+	"watch": true
+}
