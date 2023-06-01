@@ -2,10 +2,21 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-import {Client} from "discord.js";
+import {Client, GatewayIntentBits, Partials} from "discord.js";
+import {loopFolders} from "./functions.js";
+import {BotClient} from "./types.js";
 
-const {botToken} = process.env;
+const {discordBotToken} = process.env;
 
-const client = new Client({intents: [], partials: []});
+const client: BotClient = new Client({
+	intents: Object.keys(GatewayIntentBits) as unknown as Partials[],
+	partials: Object.keys(Partials) as unknown as Partials[]
+});
 
-await client.login(botToken);
+await loopFolders("functions", async (callback) => {
+	console.log(callback);
+
+	(callback as Function)(client);
+});
+
+await client.login(discordBotToken);
