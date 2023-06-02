@@ -1,8 +1,11 @@
 {
 	"devDependencies": {
+		"@discordjs/rest": "^1.7.1",
+		"chalk": "^5.2.0",
 		"discord.js": "^14.11.0",
 		"dotenv": "^16.0.3",
 		"eslint": "^8.41.0",
+		"mongoose": "^7.2.2",
 		"typescript": "^5.0.4"
 	},
 	"name": "slime-bot",
@@ -10,6 +13,7 @@
 	"version": "1.0.0",
 	"main": "dist/bot.js",
 	"dependencies": {
+		"@types/mongoose": "^5.11.97",
 		"acorn": "^8.8.2",
 		"acorn-jsx": "^5.3.2",
 		"ajv": "^6.12.6",
@@ -19,7 +23,6 @@
 		"balanced-match": "^1.0.2",
 		"brace-expansion": "^1.1.11",
 		"callsites": "^3.1.0",
-		"chalk": "^4.1.2",
 		"color-convert": "^2.0.1",
 		"color-name": "^1.1.4",
 		"concat-map": "^0.0.1",
@@ -97,7 +100,9 @@
 		"yocto-queue": "^0.1.0"
 	},
 	"scripts": {
-		"bot": "node ./dist/bot.js"
+		"bot": "node .",
+		"debug": "set debug=1 && node .",
+		"clear-commands": "set clearCommands=1 && node ."
 	},
 	"repository": {
 		"type": "git",
