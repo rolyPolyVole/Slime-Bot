@@ -29,7 +29,8 @@
 		"stroustrup",
 		"vars",
 		"wrappy",
-		"yocto"
+		"yocto",
+		"youtube"
 	],
 	"markdownlint.ignore": ["node_modules/**/*", "dist/**/*", ".git/**/*"]
 }
