@@ -5,14 +5,19 @@ import {REST} from "@discordjs/rest";
 
 export default (client: BotClient) => {
 	client.handleCommands = async () => {
-		const {commandArray, commands} = client;
+		let {commandArray, commands} = client;
 
-		await loopFolders("commands", async (command) => {
+		await loopFolders("commands", (command) => {
 			const typedCommand = command as Command;
 
 			commandArray.push(typedCommand.data);
 			commands.set(typedCommand.data.name, typedCommand);
 		});
+
+		// Filter out duplicate commands.
+		commandArray = commandArray.filter(
+			(command, index) => commandArray.map((commandData) => commandData.name).indexOf(command.name) === index
+		);
 
 		const rest = new REST({version: "9"}).setToken(process.env.discordBotToken as string);
 
