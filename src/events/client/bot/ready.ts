@@ -9,5 +9,7 @@ export const ready: Event<"ready"> = {
 		console.log(
 			whiteBright(`${bold("[Client]")} Ready! Online and logged in as ${greenBright(client.user?.username)}.`)
 		);
+
+		setInterval(async () => await client.checkUploads(), 60000);
 	}
 };
