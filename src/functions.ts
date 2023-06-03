@@ -5,7 +5,10 @@ import {readdirSync} from "fs";
  * @param {string} path The path to the folder containing the categories. (from the src directory)
  * @param {(file: string) => void} callback The callback function to be called on each file.
  */
-export const loopFolders = async (path: string, callback: (exports: unknown, filePath: string) => Promise<void>) => {
+export const loopFolders = async (
+	path: string,
+	callback: (exports: unknown, filePath: string) => Promise<void> | void
+) => {
 	const categories = readdirSync(`./dist/${path}/`); // The path starts at src (dist) because most use cases of this function will start there anyway.
 
 	for (const category of categories) {
