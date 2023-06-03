@@ -6,7 +6,6 @@ import {
 	ClientEvents,
 	Collection,
 	ContextMenuCommandBuilder,
-	Message,
 	MessageContextMenuCommandInteraction,
 	ModalSubmitInteraction,
 	SlashCommandBuilder,
@@ -37,8 +36,7 @@ export type Command = {
 	description?: string;
 	usage: string[];
 	examples?: string[];
-	aliases?: string[];
-	execute(interaction: ChatInputCommandInteraction | Message, client: BotClient, ...args: string[]): Promise<unknown>;
+	execute(interaction: ChatInputCommandInteraction, client: BotClient, ...args: string[]): Promise<unknown>;
 };
 
 /**
@@ -50,9 +48,8 @@ export type AutoCompleteCommand = {
 	description?: string;
 	usage: string[];
 	examples: string[];
-	aliases?: string[];
 	autocomplete(interaction: AutocompleteInteraction, client: BotClient): Promise<unknown>;
-	execute(interaction: ChatInputCommandInteraction | Message, client: BotClient, ...args: string[]): Promise<unknown>;
+	execute(interaction: ChatInputCommandInteraction, client: BotClient, ...args: string[]): Promise<unknown>;
 };
 
 export type MessageContextMenuCommand = {
