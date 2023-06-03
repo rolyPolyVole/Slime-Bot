@@ -6,6 +6,7 @@
 		"dotenv": "^16.0.3",
 		"eslint": "^8.41.0",
 		"mongoose": "^7.2.2",
+		"rss-parser": "^3.13.0",
 		"typescript": "^5.0.4"
 	},
 	"name": "slime-bot",
@@ -102,7 +103,8 @@
 	"scripts": {
 		"bot": "node .",
 		"debug": "set debug=1 && node .",
-		"clear-commands": "set clearCommands=1 && node ."
+		"clear-commands": "set clearCommands=1 && node .",
+		"cc": "set clearCommands=1 && node ."
 	},
 	"repository": {
 		"type": "git",
