@@ -14,7 +14,7 @@ const client = new Client({
 	partials: Object.keys(Partials) as unknown as Partials[]
 }) as BotClient;
 
-await loopFolders("functions", async (callback) => (callback as Function)(client));
+await loopFolders("functions", (callback) => (callback as Function)(client));
 
 client.handleEvents().catch(console.error);
 
