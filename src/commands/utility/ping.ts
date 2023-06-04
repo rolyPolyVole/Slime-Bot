@@ -1,5 +1,5 @@
 import {SlashCommandBuilder} from "discord.js";
-import {Command} from "../../types.js";
+import {Command} from "types";
 import {Colours} from "../../utility.js";
 
 export const ping: Command = {
@@ -13,7 +13,7 @@ export const ping: Command = {
 		await interaction.editReply({
 			embeds: [
 				{
-					title: "Pong! 🏓",
+					title: "🏓 Pong!",
 					color: Colours.Transparent,
 					description: `🤖 **API Latency**: \`${client.ws.ping}\`\n\n👤 **Client Ping**: \`${
 						message.createdTimestamp - interaction.createdTimestamp
