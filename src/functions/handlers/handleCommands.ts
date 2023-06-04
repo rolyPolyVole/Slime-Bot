@@ -1,6 +1,6 @@
 import {Routes} from "discord.js";
-import {loopFolders} from "../../functions.js";
-import {BotClient, Command} from "../../types.js";
+import {loopFolders} from "../../utility.js";
+import {BotClient, Command} from "types";
 import {REST} from "@discordjs/rest";
 
 export default (client: BotClient) => {
