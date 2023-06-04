@@ -3,8 +3,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import {Client, Collection, GatewayIntentBits, Partials} from "discord.js";
-import {loopFolders} from "./functions.js";
-import {BotClient} from "./types.js";
+import {loopFolders} from "./utility.js";
+import {BotClient} from "types";
 import {connect} from "mongoose";
 
 const {discordBotToken, mongoDatabaseToken} = process.env;
