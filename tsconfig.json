@@ -29,7 +29,8 @@
 			"@commands/*": ["commands/*"],
 			"@components/*": ["components/*"]
 		},
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"sourceRoot": "./src"
 	},
 	"exclude": ["node_modules", "dist"],
 	"include": ["src"],
