@@ -5,7 +5,7 @@ The bot's main purpose is to provide key functionality and useful features for t
 
 ## To-do List
 
-- [ ] Advanced settings menu (0% complete)
+- [ ] Advanced (self-generating) settings menu (0% complete)
 - [ ] Advanced embed builder (0% complete)
 - [ ] Fun commands (0% complete)
 - [ ] Utility commands (0% complete)
