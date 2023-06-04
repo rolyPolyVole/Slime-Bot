@@ -2,6 +2,6 @@ import chalk from "chalk";
 
 export const connected = {
 	execute() {
-		console.log(chalk.green(`\n${chalk.bold("[Database Status]")} Connected.\n`));
+		console.log(chalk.green(`${chalk.bold("[Database Status]")} Connected.\n`));
 	}
 };
