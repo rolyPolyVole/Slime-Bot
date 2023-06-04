@@ -1,5 +1,5 @@
-import {loopFolders} from "../../functions.js";
-import {BotClient, Button, Modal, SelectMenu} from "../../types.js";
+import {loopFolders} from "../../utility.js";
+import {BotClient, Button, Modal, SelectMenu} from "types";
 
 export const handleComponents = (client: BotClient) => {
 	client.handleComponents = async () => {
