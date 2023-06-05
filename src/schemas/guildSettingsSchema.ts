@@ -15,7 +15,18 @@ const guildSettingsSchema = new Schema({
 		]
 	},
 	starboard: {
-		channels: [{channelID: String, pingRoleID: String, emojiID: String, emojiCount: Number}]
+		channels: [
+			{
+				channelID: String,
+				pingRoleID: String,
+				emojiID: String,
+				emojiCount: Number,
+				starredMessageIDs: {
+					type: Object,
+					of: String
+				}
+			}
+		]
 	}
 });
 
