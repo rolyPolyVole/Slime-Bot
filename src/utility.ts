@@ -73,7 +73,7 @@ export enum Colours {
  *
  * const urls = URLRegExp.exec(string);
  * console.log(urls);
- * => ["http://foo.co.uk/", "https://marketplace.visualstudio.com/items?itemName=chrmarti.regex", "https://github.com/chrmarti/vscode-regex"];
+ * // => ["http://foo.co.uk/", "https://marketplace.visualstudio.com/items?itemName=chrmarti.regex", "https://github.com/chrmarti/vscode-regex"];
  */
 export const URLRegExp =
 	/(https?:\/\/)((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?/gi;
@@ -85,10 +85,10 @@ export const URLRegExp =
  * @example
  *
  * isValidURL("styles.css");
- * => false;
+ * // => false;
  *
  * isValidURL("https://www.youtube.com");
- * => true;
+ * // => true;
  */
 export const isValidURL = (urlString: string): boolean =>
 	/^(https?:\/\/)((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i.test(
@@ -124,10 +124,10 @@ export const ImageExtensions = [
  * import {isImageLink} from "../../../utility.js";
  *
  * isImageLink("https://www.youtube.com");
- * => false;
+ * // => false;
  *
  * isImageLink("https://static.wikia.nocookie.net/minecraft_gamepedia/images/d/dd/Slime_JE3_BE2.png/revision/latest?cb=20191230025505");
- * => true;
+ * // => true;
  */
 export const isImageLink = (urlString: string): boolean => {
 	// For loop instead of forEach or reduce because jump target can not cross function boundary.
@@ -136,4 +136,26 @@ export const isImageLink = (urlString: string): boolean => {
 	for (const extension of ImageExtensions) if (new RegExp(`\\.${extension}($|\\/[^/]+)`).test(urlString)) return true;
 
 	return false;
+};
+
+/**
+ * A function that inverts an objects keys and values.
+ * @param {{[key: string]: string}} object The object to invert the values of.
+ * @returns {{[key: string]: string}} A **new** object with the inverted keys and values.
+ * @example
+ * import {invertObject} from "../../../utility.js";
+ *
+ * let rolyPolyVole = { firstName: "roly", secondName: "Poly", thirdName: "Vole" };
+ *
+ * invertObject(rolyPolyVole);
+ * // => { roly: "firstName", Poly: "secondName", Vole: "thirdName" };
+ */
+export const invertObject = (object: {[key: string]: string}) => {
+	const newObject: {[key: string]: string} = {};
+
+	for (const key in object) {
+		newObject[object[key]] = key;
+	}
+
+	return newObject;
 };
