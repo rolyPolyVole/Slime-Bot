@@ -10,12 +10,14 @@ The bot's main purpose is to provide key functionality and useful features for t
 - [ ] Fun commands (0% complete)
 - [ ] Utility commands (0% complete)
 - [ ] Maths commands (0% complete)
-- [ ] YouTube upload tracker (50% complete)
+- [ ] YouTube upload tracker (47.5% complete)
   - [ ] YouTube upload tracker & poster (95% complete) => `Profile picture fetcher from channel ID.`
   - [ ] YouTube upload tracker settings (0% complete) => `YouTube channel link & Discord channel link or ID input => +(YouTube channel ID & profile picture & latest video ID)`
-- [ ] Starboard (25% complete)
-  - [ ] Starboard post sending (80% complete) => `Check if it's already sent, check if the message is itself a starboard post, finish video embed system, add a timestamp for when the message got enough reactions.`
-  - [ ] Starboard post updating (0% complete) => `Update the message when reactions are added/removed, update starboard message content only.`
+- [ ] Starboard (80% complete)
+  - [x] Starboard post sending (100% complete) => `Check if it's already sent, check if the message is itself a starboard post, finish video embed system, add a timestamp for when the message got enough reactions.`
+  - [x] Starboard post updating (100% complete) => `Update the message when reactions are added/removed, update starboard embed title content only.`
+  - [x] Delete starboard settings when the channel is deleted (100% complete)
+  - [x] Delete starboard message data when the starboard message is deleted (100% complete)
   - [ ] Starboard settings (0% complete)
 - [ ] Tickets (0% complete)
 - [ ] Welcome/goodbye/server boost messages & invite tracker (0% complete)
