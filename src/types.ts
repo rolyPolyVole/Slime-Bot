@@ -41,7 +41,7 @@ export type Command = {
 
 /**
  * Type for autocomplete commands. This basically extends base command type & adds an autocompletion function.
- * Note that examples are required for this command type.
+ * - Note that examples are required for this command type.
  */
 export type AutoCompleteCommand = {
 	data: SlashCommandBuilder;
@@ -66,7 +66,16 @@ export type UserContextMenuCommand = {
 	execute(interaction: UserContextMenuCommandInteraction, client: BotClient): Promise<unknown>;
 };
 
-export type AnyContextMenuCommand = MessageContextMenuCommand | UserContextMenuCommand;
+// This type has to be declared fully or else TypeScript will complain.
+export type AnyContextMenuCommand = {
+	data: ContextMenuCommandBuilder;
+	description: string;
+	usage: string[];
+	execute(
+		interaction: MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction,
+		client: BotClient
+	): Promise<unknown>;
+};
 
 export type AnyCommand = Command | AutoCompleteCommand | AnyContextMenuCommand;
 
@@ -85,9 +94,14 @@ export type SelectMenu = {
 	execute(interaction: StringSelectMenuInteraction, client: BotClient): Promise<void>;
 };
 
-export type Event<K extends keyof ClientEvents> = {
+/**
+ * A type for Discord client events.
+ * => Provides autocompletion for the events, which is very useful.
+ * @template {keyof ClientEvents} E - Event - The name of the event.
+ */
+export type Event<E extends keyof ClientEvents> = {
 	once?: boolean;
-	execute(client: BotClient, ...args: ClientEvents[K]): Promise<unknown>;
+	execute(client: BotClient, ...args: ClientEvents[E]): Promise<unknown>;
 };
 
 export type ProcessEvent = {
