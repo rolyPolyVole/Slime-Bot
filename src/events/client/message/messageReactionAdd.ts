@@ -5,40 +5,67 @@ import {Colours, URLRegExp, isImageLink} from "../../../utility.js";
 
 export const messageReactionAdd: Event<"messageReactionAdd"> = {
 	async execute(client, reaction, user) {
-		const {message, emoji, count} = reaction;
-
-		const {guild, channelId, author, content, url, createdTimestamp, attachments, embeds} = message;
+		const {message} = reaction;
+		const {guild} = message;
 
 		if (guild) {
-			const {emojis, id} = guild;
-
-			const guildSettings = await guildSettingsSchema.findOne({id});
+			const guildSettings = await guildSettingsSchema.findOne({id: guild.id});
 
 			if (guildSettings?.starboard?.channels?.length) {
-				for (const channel of guildSettings.starboard.channels) {
-					const {emojiID, emojiCount, channelID} = channel;
+				const {emoji} = reaction;
 
-					if (emoji.id === emojiID && count === emojiCount) {
+				for (const channel of guildSettings.starboard.channels) {
+					if (
+						emoji.id === channel.emojiID && // The emoji is the one of the starboard channel.
+						channel.channelID !== message.channelId // The message is not in the starboard channel
+					) {
 						// When the owner or an admin adds a channel, the bot would have checked that the channel is not of type CategoryChannel or type ForumChannel.
 						// That means that the assertion that the channel is of type TextChannel is safe.
 						const starboardChannel = (await (
-							await client.guilds.fetch(id)
-						).channels.fetch(channelID as string)) as TextChannel;
+							await client.guilds.fetch(guild.id)
+						).channels.fetch(channel.channelID as string)) as TextChannel;
 
-						if (starboardChannel) {
+						const starredMessageID = channel.starredMessageIDs?.[message.id];
+
+						if (
+							starredMessageID
+							// The message has been sent already => reaction count needs to be updated.
+						) {
+							const starredMessage = await starboardChannel.messages.fetch(starredMessageID);
+
+							const {title} = starredMessage.embeds[0].data;
+
+							// Assertion necessary because the embed needs to be edited.
+							// Updating the reaction count.
+							(starredMessage.embeds[0].data as APIEmbed).title = title?.replace(/> \d+/, `> ${reaction.count}`);
+
+							await starredMessage.edit({
+								embeds: starredMessage.embeds
+							});
+						} else if (
+							// Message hasn't been sent to the starboard channel => needs to be sent.
+							// Both of these values are going to be numbers so the assertion is safe.
+							(reaction.count as number) >= (channel.emojiCount as number)
+						) {
+							const {author, content, url, createdTimestamp, attachments, embeds} = message;
+							const {emojis} = guild;
+
 							const starboardEmoji = await emojis.fetch(emoji.id);
-
 							const messageImageURLs = (content?.match(URLRegExp) ?? []).filter(isImageLink);
 
-							await starboardChannel.send({
+							const starboardMessage = await starboardChannel.send({
 								embeds: [
 									{
-										title: `<:${starboardEmoji.animated ? "a:" : ""}_:${emojiID}> ${count} | <#${channelId}>`,
+										title: `<:${starboardEmoji.animated ? "a:" : ""}_:${channel.emojiID}> ${
+											reaction.count
+										} | <t:${Math.round(Date.now() / 1000)}:R> | <#${message.channelId}>`,
 										description: `${content}\n\n[Jump to Message](${url})`.trim(),
 										color: Colours.Transparent,
 										author: {
 											name: author?.username ?? "👤 Unknown",
-											icon_url: author?.avatarURL() ?? "" // TODO: Add a question mark icon for if the avatar URL fails to load.
+											icon_url:
+												author?.avatarURL() ??
+												"https://cdn.discordapp.com/attachments/1020058739526619186/1115270152544596018/800px-Blue_question_mark_icon.png"
 										},
 										footer: {
 											text: `${client.user?.username as string} - Message ID • Time sent at - ${message.id}`,
@@ -54,13 +81,12 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 										// Filter out embedded image links saved from the original message.
 										// There has to be a complicated statement because embed.type is deprecated.
 										.filter((embed) => {
-											const embedKeys = Object.keys(embed);
-
 											const {thumbnail} = embed;
 
 											if (embed.url && thumbnail?.url) {
 												const {proxy_url} = thumbnail;
 
+												const embedKeys = Object.keys(embed);
 												const urlIndex = messageImageURLs.indexOf(embed.url);
 												const thumbnailURLIndex = messageImageURLs.indexOf(thumbnail.url);
 
@@ -88,7 +114,8 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 												newEmbed.image = {url: newEmbed.thumbnail?.url as string};
 												newEmbed.footer = {
 													text: `${newEmbed.provider?.name}`,
-													icon_url: "../../../../assets/video-play-icon.png"
+													icon_url:
+														"https://cdn.discordapp.com/attachments/1020058739526619186/1115247093301391360/video-play-icon.png"
 												};
 
 												return newEmbed;
@@ -103,6 +130,12 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 								// This doesn't apply to message's *files* as those behave the same way as in the original message.
 								files: [...Array.from(attachments.values()).map((attachment) => attachment.url), ...messageImageURLs]
 							});
+
+							channel.starredMessageIDs ??= {};
+							channel.starredMessageIDs[message.id] = starboardMessage.id;
+
+							const {starboard} = guildSettings;
+							await guildSettingsSchema.updateOne({id: guild.id}, {starboard});
 						}
 					}
 				}
