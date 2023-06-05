@@ -2,9 +2,8 @@ import {APIEmbed, TextChannel} from "discord.js";
 import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 import {Event} from "types";
 
-export const messageReactionRemove: Event<"messageReactionRemove"> = {
-	async execute(_client, reaction, user) {
-		const {message} = reaction;
+export const messageReactionRemoveAll: Event<"messageReactionRemoveAll"> = {
+	async execute(_client, message, _reactions) {
 		const {guild} = message;
 
 		if (guild) {
@@ -29,7 +28,7 @@ export const messageReactionRemove: Event<"messageReactionRemove"> = {
 
 						// Assertion necessary because the embed needs to be edited.
 						// Updating the reaction count.
-						(starredMessage.embeds[0].data as APIEmbed).title = title?.replace(/> \d+/, `> ${reaction.count}`);
+						(starredMessage.embeds[0].data as APIEmbed).title = title?.replace(/> \d+/, `> 0`);
 
 						await starredMessage.edit({
 							embeds: starredMessage.embeds
