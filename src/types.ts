@@ -26,6 +26,7 @@ export type BotClient = Client & {
 	handleCommands(): Promise<void>;
 	handleComponents(): Promise<void>;
 	checkUploads(): Promise<void>;
+	onlineTimestamp: number;
 };
 
 /**
@@ -66,7 +67,9 @@ export type UserContextMenuCommand = {
 	execute(interaction: UserContextMenuCommandInteraction, client: BotClient): Promise<unknown>;
 };
 
-// This type has to be declared fully or else TypeScript will complain.
+/**
+ * This type has to be declared fully or else TypeScript will complain.
+ */
 export type AnyContextMenuCommand = {
 	data: ContextMenuCommandBuilder;
 	description: string;
