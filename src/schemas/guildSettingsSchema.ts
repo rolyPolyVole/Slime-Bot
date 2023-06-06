@@ -2,31 +2,44 @@ import {Schema, model} from "mongoose";
 
 const guildSettingsSchema = new Schema({
 	id: String,
-	prefix: String,
 	youtube: {
-		channels: [
-			{
-				youtubeChannelID: String,
-				youtubeChannelProfilePictureURL: String,
-				latestVideoID: String,
-				discordChannelID: String,
-				pingRoleID: String
-			}
-		]
+		settings: {
+			channels: [
+				{
+					youtubeChannelID: String,
+					youtubeChannelProfilePictureURL: String,
+					latestVideoID: String,
+					discordChannelID: String,
+					pingRoleID: String
+				}
+			]
+		},
+		appearance: {
+			icon: String,
+			colour: String
+		},
+		enabled: Boolean
 	},
 	starboard: {
-		channels: [
-			{
-				channelID: String,
-				pingRoleID: String,
-				emojiID: String,
-				emojiCount: Number,
-				starredMessageIDs: {
-					type: Object,
-					of: String
+		settings: {
+			channels: [
+				{
+					channelID: String,
+					pingRoleID: String,
+					emojiID: String,
+					emojiCount: Number,
+					starredMessageIDs: {
+						type: Object,
+						of: String
+					}
 				}
-			}
-		]
+			]
+		},
+		appearance: {
+			icon: String,
+			colour: String
+		},
+		enabled: Boolean
 	}
 });
 

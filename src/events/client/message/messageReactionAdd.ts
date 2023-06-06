@@ -4,17 +4,17 @@ import {Event} from "types";
 import {Colours, URLRegExp, isImageLink} from "../../../utility.js";
 
 export const messageReactionAdd: Event<"messageReactionAdd"> = {
-	async execute(client, reaction, user) {
+	async execute(client, reaction, _user) {
 		const {message} = reaction;
 		const {guild} = message;
 
 		if (guild) {
 			const guildSettings = await guildSettingsSchema.findOne({id: guild.id});
 
-			if (guildSettings?.starboard?.channels?.length) {
+			if (guildSettings?.starboard?.settings?.channels?.length) {
 				const {emoji} = reaction;
 
-				for (const channel of guildSettings.starboard.channels) {
+				for (const channel of guildSettings.starboard.settings.channels) {
 					if (
 						emoji.id === channel.emojiID && // The emoji is the one of the starboard channel.
 						channel.channelID !== message.channelId // The message is not in the starboard channel

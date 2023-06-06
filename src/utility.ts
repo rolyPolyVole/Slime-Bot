@@ -1,4 +1,16 @@
 import {readdirSync} from "fs";
+import { APIApplicationCommandOptionChoice } from "discord.js";
+import {
+	EmbedBuilder,
+	APIEmbed,
+	BaseInteraction,
+	ModalSubmitInteraction,
+	ButtonInteraction,
+	blockQuote,
+	inlineCode,
+} from "discord.js";
+
+import guildSettingsSchema from "./schemas/guildSettingsSchema";
 
 /**
  * A function to loop over a folder containing categories, which themselves contain files. The files are passed as parameters to a callback function. Information about the files is logged to the console.
@@ -159,3 +171,120 @@ export const invertObject = (object: {[key: string]: string}) => {
 
 	return newObject;
 };
+
+/**
+ * Capitalises the first letter of a given string.
+ * @param str The string to modify
+ * @returns {string}
+ */
+export const capitaliseFirst = (str: string): string => {
+	return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+export const fetchSettingCategories = (schema: { [key: string]: any}): APIApplicationCommandOptionChoice<string>[] => {
+	return Object.keys(schema)
+		.filter((key: string) => schema[key as keyof typeof schema].hasOwnProperty("settings"))
+		.map((category: string) => ({ name: category as string, value: category as string }));
+}
+
+export enum SettingsCategories {
+	Home = "home",
+	Youtube = "youtube",
+}
+
+/**
+ * Manager of all Embeds and Component Interactions of the Guild Settings Embed System.
+ */
+export class GuildSettingsEmbedSystem extends EmbedBuilder {
+	public data: APIEmbed;
+	public currentCategory: SettingsCategories|string;
+	public interaction: BaseInteraction;
+	readonly homepage: APIEmbed;
+
+	constructor (interaction: BaseInteraction) {
+		super();
+		this.interaction = interaction;
+		this.currentCategory = SettingsCategories.Home;
+		this.homepage = new EmbedBuilder()
+		.setAuthor({ name: `${interaction.guild?.name}`, iconURL: interaction.guild?.iconURL() ?? undefined })
+		.setColor("Greyple")
+		.setDescription(blockQuote("Welcome to the settings homepage of the bot. Here you can personalise and tweak the functions of the bot to suit your Discord server. Use the select menu below to visit the categories. Each category has settings which you can change to your liking."))
+		.setFields({ name: "How to change Settings", value: "**1.** Choose a Category that has settings you want to change\n**2.** Click \"Edit\"\n**3.** Click a setting you want to change." })
+		.setFooter({ text: "Server Settings & Preferences", iconURL: "https://creazilla-store.fra1.digitaloceanspaces.com/emojis/53795/gear-emoji-clipart-sm.png" })
+		.setThumbnail("https://creazilla-store.fra1.digitaloceanspaces.com/emojis/53795/gear-emoji-clipart-sm.png")
+		.setTimestamp(Date.now())
+		.setTitle("Server Settings")
+		.toJSON();
+		this.data = this.homepage;
+	}
+
+	/**
+	 * Returns an Embed shaped from the current page of the guild setting system.
+	 * @returns {EmbedBuilder}
+	 */
+	public toEmbed (): EmbedBuilder {
+		return EmbedBuilder.from(this.data);
+	}
+	
+	/**
+	 * Handles an interaction created by a button or modal component. Use this for button and modal files associated with the guild settings embed system.
+	 * @param {BaseInteraction} interaction 
+	 */
+	public async handleComponentInteraction (interaction?: BaseInteraction): Promise<void> {
+		if (interaction) this.interaction = interaction;
+
+		if (this.interaction instanceof ButtonInteraction) {
+			if (this.interaction.customId === "guildSettingsCategoryEdit") {
+				//Edit this.category based on select menu input
+				//Run this.navigateEmbedByCategory with the category given
+			} else if (this.interaction.customId === "guildSettingsCategoryToggle"){
+				//Edit the enabled property of the category based on select menu input
+			} else {
+				//Show modal 
+			}
+
+		} else if (this.interaction instanceof ModalSubmitInteraction) {
+			//Edit the settings schema based on input data
+		} else return;
+	}
+
+	/**
+	 * Directly change the guild setting system's embed page to a specified category.
+	 * @param {SettingsCategories|string} category 
+	 */
+	public async navigateEmbedByCategory (category: SettingsCategories|string): Promise<void> {
+		this.currentCategory = category;
+		await this.editEmbed(category);
+	}
+
+
+	/**
+	 * Edits this.data to the embed data associated with the specified category.
+	 * @param {SettingsCategories|string} category 
+	 */
+	private async editEmbed (category: SettingsCategories|string): Promise<void> {
+		if (category === "home") this.data = this.homepage;
+		else this.data = await this.constructEmbed(category);
+	}
+
+	/**
+	 * Scrapes data off the guild settings mongo schema, and designs an embed out of it. The embed is returned as a raw object.
+	 * @param {SettingsCategories|string} category 
+	 * @returns {APIEmbed}
+	 */
+	private async constructEmbed (category: string): Promise<APIEmbed> {
+		const schema = await guildSettingsSchema.findOne({ id: this.interaction.guild?.id });
+		if (!schema) throw new Error("Could not find guild settings schema with id " + this.interaction.guild?.id);
+
+		return new EmbedBuilder()
+			.setAuthor({ name: `${this.interaction.guild?.name}`, iconURL: this.interaction.guild?.iconURL() ?? undefined })
+			.setTitle(`${capitaliseFirst(category)} Settings`)
+			.setColor(schema[category as keyof typeof schema].appearance.colour)
+			.setDescription(blockQuote(`Here are the settings for the category ${inlineCode(category)}. To make changes to a setting, choose a setting with the select menu below, then press ${inlineCode("edit")}.`))
+			.setFooter({ text: `Settings & Preferences - ${capitaliseFirst(category)}`, iconURL: schema[category as keyof typeof schema].appearance.icon })
+			.setTimestamp(Date.now())
+			.setThumbnail(schema[category as keyof typeof schema].appearance.icon)
+			.toJSON();
+	}
+}
+

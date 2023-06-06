@@ -32,7 +32,7 @@ export type BotClient = Client & {
  * A type for  handling Discord commands.
  */
 export type Command = {
-	data: SlashCommandBuilder;
+	data: SlashCommandBuilder|Omit<SlashCommandBuilder, "addSubcommand"|"addSubcommandGroup">;
 	description?: string;
 	usage: string[];
 	examples?: string[];

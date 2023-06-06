@@ -3,14 +3,14 @@ import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 import {Event} from "types";
 
 export const messageReactionRemove: Event<"messageReactionRemove"> = {
-	async execute(_client, reaction, user) {
+	async execute(_client, reaction, _user) {
 		const {message} = reaction;
 		const {guild} = message;
 
 		if (guild) {
 			const guildSettings = await guildSettingsSchema.findOne({id: guild.id});
 
-			const starboardChannels = guildSettings?.starboard?.channels;
+			const starboardChannels = guildSettings?.starboard?.settings?.channels;
 
 			if (starboardChannels?.length) {
 				for (const channel of starboardChannels) {
