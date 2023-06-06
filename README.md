@@ -3,7 +3,7 @@
 Slime Bot is a Discord bot developed by `@🍉 Slqmy#5014` for the The Slimy Swamp [community Discord server](https://www.discord.gg/SjAGgJaCYc).
 The bot's main purpose is to provide key functionality and useful features for the server.
 
-## To-do List
+## To-Do List
 
 - [ ] Advanced (self-generating) settings menu (0% complete)
 - [ ] Advanced embed builder (0% complete)
