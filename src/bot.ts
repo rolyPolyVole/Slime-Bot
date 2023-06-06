@@ -14,6 +14,8 @@ const client = new Client({
 	partials: Object.keys(Partials) as unknown as Partials[]
 }) as BotClient;
 
+client.onlineTimestamp = Date.now();
+
 await loopFolders("functions", (callback) => (callback as Function)(client));
 
 client.handleEvents().catch(console.error);
