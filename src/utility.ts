@@ -24,13 +24,15 @@ const {whiteBright, bold} = chalk;
  * @param {(exports: unknown, filePath: string) => void | Promise<void>} callback The callback function to be called on each file.
  * @returns {Promise<void>}
  * @example
- * // ./src/bot.ts:17:0
+ * // ./src/bot.ts.
  * import {loopFolders} from "./functions.js";
  *
- * ...
+ * // ...
  *
  * // Loops through the client functions folder and calls the functions.
  * await loopFolders("functions", (callback) => (callback as Function)(client));
+ *
+ * // ...
  */
 export const loopFolders = async (
 	path: string,
@@ -61,13 +63,28 @@ export const loopFolders = async (
 /**
  * A regular expression that matches all URLs in a string. (Global and ignore case flags)
  * @example
+ * // Matching all URLs in a string.
  * import {URLRegExp} from "../../../utility.js";
  *
  * const string = "http://foo.co.uk/ Some example text in between https://marketplace.visualstudio.com/items?itemName=chrmarti.regex Some more random text - https://github.com/chrmarti/vscode-regex";
  *
  * const urls = URLRegExp.exec(string);
  * console.log(urls);
- * // => ["http://foo.co.uk/", "https://marketplace.visualstudio.com/items?itemName=chrmarti.regex", "https://github.com/chrmarti/vscode-regex"];
+ * // => ["http://foo.co.uk/", "https://marketplace.visualstudio.com/items?itemName=chrmarti.regex", "https://github.com/chrmarti/vscode-regex"].
+ * @example
+ * // Matching all URLs in a string.
+ * // ./src/events/client/message/messageReactionAdd.ts.
+ * import {URLRegExp, isImageLink} from "../../../utility.js";
+ *
+ * // ...
+ *
+ * const {author, content, url, createdTimestamp, attachments, embeds} = message;
+ *
+ * // ...
+ *
+ * const messageImageURLs = (content?.match(URLRegExp) ?? []).filter(isImageLink);
+ *
+ * // ...
  */
 export const URLRegExp =
 	/(https?:\/\/)((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?/gi;
@@ -79,10 +96,10 @@ export const URLRegExp =
  * @example
  *
  * isValidURL("styles.css");
- * // => false;
+ * // => false.
  *
  * isValidURL("https://www.youtube.com");
- * // => true;
+ * // => true.
  */
 export const isValidURL = (urlString: string): boolean =>
 	/^(https?:\/\/)((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i.test(
@@ -91,6 +108,26 @@ export const isValidURL = (urlString: string): boolean =>
 
 /**
  * A list of all (probably most) valid image file extensions.
+ *
+ * Used in the `isImageLink` function. `./src/utility.ts`
+ * @example
+ * // Checking if a link is an image link.
+ * import {ImageExtensions} from "../../../utility.js";
+ *
+ * const string = "https://static.wikia.nocookie.net/minecraft_gamepedia/images/d/dd/Slime_JE3_BE2.png/revision/latest?cb=20191230025505";
+ *
+ * console.log(ImageExtensions.some((extension) => new RegExp(`.${extension}`, "i").test(string)));
+ * // => true.
+ * @example
+ * // Used in the isImageLink function.
+ * // ./src/utility.ts.
+ *
+ * // ...
+ *
+ * for (const extension of ImageExtensions)
+ *	if (new RegExp(`\\.${extension}($|\\/[^/]+)`, "i").test(urlString)) return true;
+ *
+ * // ...
  */
 export const ImageExtensions = [
 	"jpg",
@@ -118,22 +155,39 @@ export const ImageExtensions = [
  * import {isImageLink} from "../../../utility.js";
  *
  * isImageLink("https://www.youtube.com");
- * // => false;
+ * // => false.
  *
  * isImageLink("https://static.wikia.nocookie.net/minecraft_gamepedia/images/d/dd/Slime_JE3_BE2.png/revision/latest?cb=20191230025505");
- * // => true;
+ * // => true.
+ * @example
+ * // Filtering out non-image links.
+ * // ./src/events/client/message/messageReactionAdd.ts.
+ * import {isImageLink} from "../../../utility.js";
+ *
+ * // ...
+ *
+ * const {author, content, url, createdTimestamp, attachments, embeds} = message;
+ *
+ * // ...
+ *
+ * // Shorthand syntax for:
+ * // const messageImageURLs = (content?.match(URLRegExp) ?? []).filter((link) => isImageLink(link))
+ * const messageImageURLs = (content?.match(URLRegExp) ?? []).filter(isImageLink);
+ *
+ * // ...
  */
 export const isImageLink = (urlString: string): boolean => {
 	// For loop instead of forEach or reduce because jump target can not cross function boundary.
 	// I.e. -> "return true" in the callback passed as an argument to the forEach function will return true in the scope of that callback, not that of the whole forEach function.
 	// A regex pattern is used here instead of String.prototype.endsWith because there are certain cases where there can be more text after the file extension, as seen in the second example above.
-	for (const extension of ImageExtensions) if (new RegExp(`\\.${extension}($|\\/[^/]+)`).test(urlString)) return true;
+	for (const extension of ImageExtensions)
+		if (new RegExp(`\\.${extension}($|\\/[^/]+)`, "i").test(urlString)) return true;
 
 	return false;
 };
 
 /**
- * A function that inverts an objects keys and values.
+ * A function that inverts an objects keys and values. Used in the `⭐ Starboard`.
  * @param {{[key: string]: string}} object The object to invert the values of.
  * @returns {{[key: string]: string}} A **new** object with the inverted keys and values.
  * @example
@@ -142,7 +196,19 @@ export const isImageLink = (urlString: string): boolean => {
  * let rolyPolyVole = { firstName: "roly", secondName: "Poly", thirdName: "Vole" };
  *
  * invertObject(rolyPolyVole);
- * // => { roly: "firstName", Poly: "secondName", Vole: "thirdName" };
+ * // => { roly: "firstName", Poly: "secondName", Vole: "thirdName" }.
+ * @example
+ * // Inverting starboard message IDs object.
+ * // ./src/events/client/message/messageDelete.ts.
+ * import {invertObject} from "../../../utility.js";
+ *
+ * // ...
+ *
+ * // Normally - original message ID: starboard channel message ID.
+ * // After inverting - starboard channel message ID: original message ID.
+ * const invertedStarredMessageIDs = invertObject(starboardChannel.starredMessageIDs);
+ *
+ * // ...
  */
 export const invertObject = (object: {[key: string]: string}): {[key: string]: string} => {
 	const newObject: {[key: string]: string} = {};
@@ -197,6 +263,18 @@ export const invertObject = (object: {[key: string]: string}): {[key: string]: s
  * //  school: 10
  * //  discord: -50
  * //  opinion: -1000
+ * @example
+ * // Used in handleError.
+ * // ./src/utility.ts.
+ *
+ * // ...
+ *
+ * // Logs interaction details object to the console.
+ * logObject({
+ * 	// ...
+ * })
+ *
+ * // ...
  */
 export const logObject = (object: {[key: string]: unknown}, indent: number = 0): void => {
 	for (const key in object) {
@@ -212,7 +290,7 @@ export const logObject = (object: {[key: string]: unknown}, indent: number = 0):
 /**
  * A function to attempt to handle errors as best as possible.
  *
- * Sends an embed with some of the error details and a prompt for the user to report the error.
+ * Sends an embed with some of the error details and a prompt for the user to report the error. Used in `interactionCreate.ts`.
  * @param {Interaction} interaction The interaction that caused the error.
  * @param {BotClient} client The bot client
  * @param {unknown} error The error that occurred.
@@ -277,11 +355,11 @@ export const handleError = async (interaction: Interaction, client: BotClient, e
 				author: {
 					name: client.user?.username as string,
 					url: "https://github.com/Slqmy/Slime-Bot",
-					icon_url: client.user?.displayAvatarURL()
+					icon_url: client.user?.displayAvatarURL(DisplayAvatarURLOptions)
 				},
 				footer: {
 					text: interaction.user.username,
-					icon_url: interaction.user.displayAvatarURL()
+					icon_url: interaction.user.displayAvatarURL(DisplayAvatarURLOptions)
 				},
 				timestamp: new Date(Date.now()).toISOString()
 			}
@@ -330,12 +408,31 @@ export const handleError = async (interaction: Interaction, client: BotClient, e
 };
 
 /**
- * The standard, untouched console log function.
+ * The standard, untouched console log function. Used in the refactored `console.log` function.
+ * @example
+ * // Used in the refactored console.log function.
+ * // ./src/utility.ts.
+ *
+ * // ...
+ *
+ * standardLog(...data);
+ *
+ * // ...
  */
 const standardLog = console.log.bind(console);
 
 /**
- * List of all logged messages on the console.
+ * List of all logged messages on the console. Used in the refactored `console.log` function.
+ * @example
+ * // Used in the refactored console.log function.
+ * // ./src/utility.ts.
+ *
+ * // ...
+ *
+ * const previousLogs = consoleLogs[consoleLogs.length - 1];
+ * const previousLog = previousLogs?.[previousLogs.length - 1];
+ *
+ * // ...
  */
 const consoleLogs: unknown[][] = [];
 
@@ -402,6 +499,20 @@ console.log = (...data) => {
  * 	title: "Example Embed",
  * 	color: Colours.Transparent
  * };
+ * @example
+ * // Replying with a transparent coloured embed.
+ * // ./src/commands/utility/ping.ts.
+ * import {Colours} from "../../../utility.js";
+ *
+ * // ...
+ *
+ * await interaction.reply({
+ * 	// ...
+ * 	color: Colours.Transparent,
+ * 	// ...
+ * })
+ *
+ * // ...
  */
 export enum Colours {
 	/**
@@ -419,6 +530,7 @@ export enum Colours {
  * An enum of emoji IDs of emojis from `🌌 The Slimy Swamp 🌳` guild that the bot can use.
  * @example
  * // Using the YouTube logo emoji to create a nice message for the YouTube upload tracker.
+ * // ./src/functions/tools/checkUploads.ts.
  * import {Emojis} from "../../../utility.js";
  *
  * // ...
@@ -431,7 +543,9 @@ export enum Colours {
  *		embeds: [
  *	// ...
  * ]
- * })
+ * });
+ *
+ * // ...
  */
 export enum Emojis {
 	YouTubeLogo = "1115689277397926022", // https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/1024px-YouTube_full-color_icon_%282017%29.svg.png
@@ -442,6 +556,23 @@ export enum Emojis {
 
 /**
  * Some options for the `displayAvatarURL()` function that ensure the best quality avatar.
+ * @example
+ * // Sending the user's avatar in the footer icon of an embed when an error occurs.
+ * // handleError function.
+ * // ./src/utility.ts.
+ *
+ * // ...
+ *
+ * const errorReply = {
+ *  embeds: [{
+ *  // ...
+ *  footer: {icon_url: interaction.user.displayAvatarURL(DisplayAvatarURLOptions)},
+ *  // ...
+ * 	}]
+ * }
+ *
+ * // ...
+ *
  */
 export const DisplayAvatarURLOptions: ImageURLOptions = {
 	/**
@@ -458,7 +589,10 @@ export const DisplayAvatarURLOptions: ImageURLOptions = {
 
 /**
  * A regular expression to match ANSI control characters.
+ *
  * This is useful for cleaning up strings that were changed in some way by the `chalk` module.
+ *
+ * Used in the `console.log` function refactor.
  * @example
  * // Removing control characters added by chalk.
  * import {ANSIControlCharacterRegExp} from "../../../utility.js";
@@ -475,6 +609,17 @@ export const DisplayAvatarURLOptions: ImageURLOptions = {
  *
  * console.log(JSON.stringify(trimmedMessage), trimmedMessage);
  * // => "Hello, world!" Hello, world!
+ * @example
+ * // Used in the console.log function refactor.
+ * // ./src/utility.ts.
+ *
+ * // ...
+ *
+ * // Clearing out any invisible control characters, and then checking if the string starts with a new line.
+ * latestLog.replace(ANSIControlCharacterRegExp, "").startsWith("\n")
+ *
+ * // ...
+ *
  */
 export const ANSIControlCharacterRegExp = /\x1B|\[\d{1,2}m/g;
 
