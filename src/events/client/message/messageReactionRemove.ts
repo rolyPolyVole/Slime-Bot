@@ -3,7 +3,7 @@ import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 import {Event} from "types";
 
 export const messageReactionRemove: Event<"messageReactionRemove"> = {
-	async execute(_client, reaction, user) {
+	async execute(_client, reaction, _user) {
 		const {message} = reaction;
 		const {guild} = message;
 
