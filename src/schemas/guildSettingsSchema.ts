@@ -2,7 +2,6 @@ import {Schema, model} from "mongoose";
 
 const guildSettingsSchema = new Schema({
 	id: String,
-	prefix: String,
 	youtube: {
 		channels: [
 			{
@@ -19,7 +18,7 @@ const guildSettingsSchema = new Schema({
 			{
 				channelID: String,
 				pingRoleID: String,
-				emojiID: String,
+				emojiID: String, // While the "emoji ID" technically isn't an ID in all cases, it's still more clear to call the variable 'emojiID' rather than 'emojiIDOrName', and simply calling it 'emoji' could cause some confusion.
 				emojiCount: Number,
 				starredMessageIDs: {
 					type: Object,
