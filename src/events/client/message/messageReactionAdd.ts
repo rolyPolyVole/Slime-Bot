@@ -1,7 +1,7 @@
 import {APIEmbed, GuildEmoji, TextChannel} from "discord.js";
 import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 import {Event} from "types";
-import {Colours, URLRegExp, displayAvatarURLOptions, isImageLink} from "../../../utility.js";
+import {Colours, URLRegExp, DisplayAvatarURLOptions, isImageLink} from "../../../utility.js";
 
 export const messageReactionAdd: Event<"messageReactionAdd"> = {
 	async execute(client, reaction) {
@@ -73,7 +73,7 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 										},
 										footer: {
 											text: `${client.user?.username as string} - Message ID • Time sent at - ${message.id}`,
-											icon_url: client.user?.displayAvatarURL(displayAvatarURLOptions)
+											icon_url: client.user?.displayAvatarURL(DisplayAvatarURLOptions)
 										},
 										timestamp: new Date(createdTimestamp).toISOString()
 									},
