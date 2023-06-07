@@ -7,9 +7,9 @@ export const ready: Event<"ready"> = {
 	once: true,
 	async execute(client) {
 		console.log(
-			whiteBright(`${bold("[Client]")} Ready! Online and logged in as ${greenBright(client.user?.username)}.\n`)
+			whiteBright(`\n${bold("[Client]")} Ready! Online and logged in as ${greenBright(client.user?.username)}.\n`)
 		);
 
-		setInterval(async () => await client.checkUploads(), 60000);
+		setInterval(client.checkUploads, 60000);
 	}
 };

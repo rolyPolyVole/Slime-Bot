@@ -9,8 +9,8 @@ export const messageDelete: Event<"messageDelete"> = {
 		if (guildId) {
 			const guildSettings = await guildSettingsSchema.findOne({id: guildId});
 
-			if (guildSettings?.starboard?.channels?.length) {
-				guildSettings.starboard.channels.forEach((starboardChannel, index) => {
+			if (guildSettings?.starboard?.settings?.channels.length) {
+				guildSettings.starboard.settings.channels.forEach((starboardChannel, index) => {
 					// Normally - original message ID: starboard channel message ID.
 					// After inverting - starboard channel message ID: original message ID.
 					const invertedStarredMessageIDs = invertObject(starboardChannel.starredMessageIDs);
@@ -21,12 +21,12 @@ export const messageDelete: Event<"messageDelete"> = {
 					if (
 						originalMessageID // A starred message is deleted.
 					) {
-						// Delete the normal value - key pair of the original message ID - the starboard channel message ID.
+						// Delete the normal key - value pair of the original message ID - the starboard channel message ID.
 						// It has to be done this weird way because I couldn't get it to work properly any other way.
 						delete starboardChannel.starredMessageIDs[originalMessageID];
 
 						// TypeScript would not shut up about guildSettings.starboard possibly being null even though that is impossible, so there is an if check here.
-						if (guildSettings.starboard) guildSettings.starboard.channels[index] = starboardChannel;
+						if (guildSettings.starboard?.settings) guildSettings.starboard.settings.channels[index] = starboardChannel;
 					}
 				});
 

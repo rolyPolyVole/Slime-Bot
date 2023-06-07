@@ -1,10 +1,10 @@
-import {APIEmbed, TextChannel} from "discord.js";
+import {APIEmbed, GuildEmoji, TextChannel} from "discord.js";
 import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 import {Event} from "types";
-import {Colours, URLRegExp, isImageLink} from "../../../utility.js";
+import {Colours, URLRegExp, DisplayAvatarURLOptions, isImageLink} from "../../../utility.js";
 
 export const messageReactionAdd: Event<"messageReactionAdd"> = {
-	async execute(client, reaction, _user) {
+	async execute(client, reaction) {
 		const {message} = reaction;
 		const {guild} = message;
 
@@ -16,7 +16,7 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 
 				for (const channel of guildSettings.starboard.settings.channels) {
 					if (
-						emoji.id === channel.emojiID && // The emoji is the one of the starboard channel.
+						(emoji.id ?? emoji.name) === (channel.emojiID ?? "⭐") && // The emoji is the one of the starboard channel. (By default (AKA channel.emojiID is undefined), the starboard emoji is a star emoji ⭐)
 						channel.channelID !== message.channelId // The message is not in the starboard channel
 					) {
 						// When the owner or an admin adds a channel, the bot would have checked that the channel is not of type CategoryChannel or type ForumChannel.
@@ -50,15 +50,19 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 							const {author, content, url, createdTimestamp, attachments, embeds} = message;
 							const {emojis} = guild;
 
-							const starboardEmoji = await emojis.fetch(emoji.id);
+							const starboardEmoji = emoji.id ? await emojis.fetch(emoji.id) : null;
+
 							const messageImageURLs = (content?.match(URLRegExp) ?? []).filter(isImageLink);
 
 							const starboardMessage = await starboardChannel.send({
 								embeds: [
 									{
-										title: `<:${starboardEmoji.animated ? "a:" : ""}_:${channel.emojiID}> ${
-											reaction.count
-										} | <t:${Math.round(Date.now() / 1000)}:R> | <#${message.channelId}>`,
+										// If emoji.id is truthy, that means that it is a string, and therefore the starboardEmoji is a GuildEmoji, since the bot checks whenever a starboard emoji is deleted.
+										title: `${emoji.id ? `<:${(starboardEmoji as GuildEmoji).animated ? "a:" : ""}_:` : ""}${
+											channel.emojiID ?? "⭐"
+										}${emoji.id ? ">" : ""} ${reaction.count} | <t:${Math.round(Date.now() / 1000)}:R> | <#${
+											message.channelId
+										}>`,
 										description: `${content}\n\n[Jump to Message](${url})`.trim(),
 										color: Colours.Transparent,
 										author: {
@@ -69,10 +73,7 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 										},
 										footer: {
 											text: `${client.user?.username as string} - Message ID • Time sent at - ${message.id}`,
-											icon_url: client.user?.displayAvatarURL({
-												forceStatic: false,
-												size: 4096
-											})
+											icon_url: client.user?.displayAvatarURL(DisplayAvatarURLOptions)
 										},
 										timestamp: new Date(createdTimestamp).toISOString()
 									},

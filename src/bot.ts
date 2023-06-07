@@ -31,4 +31,6 @@ client.handleComponents().catch(console.error);
 
 await client.login(discordBotToken);
 
+client.onlineTimestamp = Date.now();
+
 await connect(mongoDatabaseToken as string).catch(console.error);

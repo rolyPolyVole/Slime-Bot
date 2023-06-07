@@ -104,7 +104,8 @@
 		"bot": "node .",
 		"debug": "set debug=1 && node .",
 		"clear-commands": "set clearCommands=1 && node .",
-		"cc": "set clearCommands=1 && node ."
+		"cc": "set clearCommands=1 && node .",
+		"maintenance": "set maintenance=1 && node ."
 	},
 	"repository": {
 		"type": "git",
@@ -116,7 +117,6 @@
 		"bot"
 	],
 	"author": "🍉 Slqmy",
-	"license": "ISC",
 	"bugs": {
 		"url": "https://github.com/Slimyyyy/Slime-Bot/issues"
 	},

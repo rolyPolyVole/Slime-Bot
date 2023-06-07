@@ -1,7 +1,10 @@
 import chalk from "chalk";
+import {MongoEvent} from "types";
 
-export const connected = {
+const {green, bold} = chalk;
+
+export const connected: MongoEvent = {
 	execute() {
-		console.log(chalk.green(`${chalk.bold("[Database Status]")} Connected.\n`));
+		console.log(green(`\n${bold("[Database Status]")} Connected.\n`));
 	}
 };

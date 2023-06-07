@@ -12,6 +12,7 @@
 		"esutils",
 		"extglob",
 		"fastq",
+		"googleusercontent",
 		"graphemer",
 		"iife",
 		"imurmurhash",
