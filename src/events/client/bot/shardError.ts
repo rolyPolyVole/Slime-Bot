@@ -5,8 +5,8 @@ const {redBright, bold} = chalk;
 
 export const debug: Event<"shardError"> = {
 	async execute(_client, error) {
-		console.log(redBright(`\n${bold("[Shard Error]")} ${error.name}\n`));
+		console.log(redBright(`\n${bold("[Shard Error]")} ${error.name}`));
 		console.error(error);
-		console.log("\n");
+		console.log();
 	}
 };
