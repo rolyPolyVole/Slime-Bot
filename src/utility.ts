@@ -1,4 +1,4 @@
-import {AutocompleteInteraction, ImageURLOptions, Interaction} from "discord.js";
+import {AutocompleteInteraction, ImageURLOptions, Interaction, InteractionType, TextChannel} from "discord.js";
 import {readdirSync} from "fs";
 import {BotClient} from "types";
 import chalk from "chalk";
@@ -144,7 +144,7 @@ export const isImageLink = (urlString: string): boolean => {
  * invertObject(rolyPolyVole);
  * // => { roly: "firstName", Poly: "secondName", Vole: "thirdName" };
  */
-export const invertObject = (object: {[key: string]: string}) => {
+export const invertObject = (object: {[key: string]: string}): {[key: string]: string} => {
 	const newObject: {[key: string]: string} = {};
 
 	for (const key in object) {
@@ -154,15 +154,92 @@ export const invertObject = (object: {[key: string]: string}) => {
 	return newObject;
 };
 
-export const handleError = async (interaction: Interaction, client: BotClient, error: unknown) => {
+/**
+ * A function to log objects nicely to the console. Supports nested objects & indents accordingly.
+ *
+ * Logs the object keys as bold and white, and the object properties as white.
+ * @param {{[key: string]: string}} object The object to log to the console.
+ * @param {number} indent The level of indentation to start with. (Used for recursion)
+ * @returns {void}
+ * @example
+ * // Logging a user object to the console.
+ * import {logObject} from "../../../utility.js";
+ *
+ * const userData = {
+ *	name: "rolyPolyVole",
+ *	firstName: "roly",
+ *	secondName: "Poly",
+ *	thirdName: "Vole",
+ *	stats: {
+ *		coding: 10,
+ *		troll: 42,
+ *	intelligence: "99.999...",
+ *		school: 10,
+ *		discord: -50,
+ *		opinion: -1000
+ *		}
+ * };
+ *
+ * logObject(userData);
+ *
+ * // Object logged nicely using chalk.
+ * // Object keys are bold and white.
+ * // Object values are white.
+ * // =>
+ * // name: rolyPolyVole
+ * // firstName: roly
+ * // secondName: Poly
+ * // thirdName: Vole
+ * // stats
+ * //  coding: 10
+ * //  troll: 42
+ * //  intelligence: 99.999...
+ * //  school: 10
+ * //  discord: -50
+ * //  opinion: -1000
+ */
+export const logObject = (object: {[key: string]: unknown}, indent: number = 0): void => {
+	for (const key in object) {
+		if (typeof object[key] === "object" && object[key]) {
+			console.log(`${" ".repeat(indent)}${bold(key)}`);
+			logObject(object[key] as {[key: string]: unknown}, indent + 1);
+		} else if (object[key]) console.log(`${" ".repeat(indent)}${bold(key)}:`, whiteBright(`${object[key]}`));
+	}
+
+	if (!indent) console.log();
+};
+
+/**
+ * A function to attempt to handle errors as best as possible.
+ *
+ * Sends an embed with some of the error details and a prompt for the user to report the error.
+ * @param {Interaction} interaction The interaction that caused the error.
+ * @param {BotClient} client The bot client
+ * @param {unknown} error The error that occurred.
+ * @returns {Promise<void>}
+ * @example
+ * // Handing errors in interactionCreate.
+ * import {Command} from "types";
+ * import {handleError} from "../../../utility.js";
+ *
+ * // ...
+ *
+ * try {
+ *	 await (command as Command).execute(interaction, client);
+ * } catch (error) {
+ *	 handleError(interaction, client, error);
+ * }
+ *
+ * // ...
+ */
+export const handleError = async (interaction: Interaction, client: BotClient, error: unknown): Promise<void> => {
+	console.log();
 	console.error(error);
 
 	const {discordBotOwnerID, discordGuildID, discordSupportChannelID} = process.env;
 
 	const discordBotOwner = discordBotOwnerID ? await client.users.fetch(discordBotOwnerID) : null;
-
 	const discordGuild = discordGuildID ? await client.guilds.fetch(discordGuildID) : null;
-
 	const discordGuildInvite = discordGuildID
 		? [...((await discordGuild?.invites?.fetch())?.values() ?? [])].sort((a, b) =>
 				!a.temporary
@@ -211,39 +288,34 @@ export const handleError = async (interaction: Interaction, client: BotClient, e
 		]
 	};
 
-	if (process.env.debug)
-		console.log(
-			bold("\nInteraction Information:") +
-				whiteBright(
-					bold("\nInteraction date: ") +
-						new Date(interaction.createdTimestamp) +
-						bold("\nInteraction timestamp: ") +
-						interaction.createdTimestamp +
-						bold("\nGuild name: ") +
-						interaction.guild?.name +
-						bold("\nGuild ID: ") +
-						interaction.guild?.id +
-						bold("\nChannel name: ") +
-						interaction.channel?.name +
-						bold("\nChannel ID: ") +
-						interaction.channel?.id +
-						bold("\nUser tag: ") +
-						interaction.user.tag +
-						bold("\nUser ID: ") +
-						interaction.user.id +
-						bold("\nMessage content: ") +
-						(interaction.message?.content === "" ? chalk.italic("No content") : interaction.message?.content) +
-						bold("\nMessage embed title: ") +
-						(interaction.message?.embeds?.[0]?.data?.title ?? chalk.italic("No embeds or no embed title")) +
-						bold("\nMessage ID: ") +
-						interaction.message?.id +
-						bold("\nMessage date: ") +
-						new Date(interaction.message?.createdTimestamp) +
-						bold("\nMessage timestamp: ") +
-						`${interaction.message?.createdTimestamp}` +
-						"\n"
-				)
-		);
+	if (process.env.debug) {
+		console.log();
+		logObject({
+			"📜 Interaction Information": {
+				"⏰ Time": {
+					Date: new Date(interaction.createdTimestamp).toISOString(),
+					TimeStamp: interaction.createdTimestamp
+				},
+				"🏠 Guild": {Name: interaction.guild?.name, ID: interaction.guildId},
+				"📄 Channel": {
+					Name: interaction.channel instanceof TextChannel ? interaction.channel.name : null,
+					ID: interaction.channelId
+				},
+				"👤 User": {Tag: interaction.user.tag, ID: interaction.user.id},
+				"💬 Message":
+					interaction.type === InteractionType.ApplicationCommand ||
+					interaction.type === InteractionType.ApplicationCommandAutocomplete
+						? null
+						: {
+								"ID": interaction.message?.id,
+								"Content": interaction.message?.content,
+								"Embed Title": interaction.message?.embeds?.[0]?.data?.title,
+								"Date": new Date(interaction?.message?.createdTimestamp ?? 0).toISOString(),
+								"Timestamp": interaction?.message?.createdTimestamp
+						  }
+			}
+		});
+	}
 
 	if (!(interaction instanceof AutocompleteInteraction)) {
 		try {
@@ -252,6 +324,8 @@ export const handleError = async (interaction: Interaction, client: BotClient, e
 		} catch (error) {
 			await interaction.editReply(errorReply).catch(console.error);
 		}
+	} else {
+		await interaction.channel?.send(errorReply).catch(console.error);
 	}
 };
 
