@@ -10,8 +10,8 @@ The bot's main purpose is to provide key functionality and useful features for t
 - [ ] Fun commands (0% complete)
 - [ ] Utility commands (0% complete)
 - [ ] Maths commands (0% complete)
-- [ ] YouTube upload tracker (47.5% complete)
-  - [ ] YouTube upload tracker & poster (95% complete) => `Profile picture fetcher from channel ID.`
+- [ ] YouTube upload tracker (50% complete)
+  - [x] YouTube upload tracker & poster (100% complete) => `Profile picture fetcher from channel ID.`
   - [ ] YouTube upload tracker settings (0% complete) => `YouTube channel link & Discord channel link or ID input => +(YouTube channel ID & profile picture & latest video ID)`
 - [ ] Starboard (80% complete)
   - [x] Starboard post sending (100% complete) => `Check if it's already sent, check if the message is itself a starboard post, finish video embed system, add a timestamp for when the message got enough reactions.`
