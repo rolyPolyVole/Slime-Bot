@@ -16,7 +16,7 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 
 				for (const channel of guildSettings.starboard.channels) {
 					if (
-						(emoji.id ?? emoji.name) === channel.emojiID && // The emoji is the one of the starboard channel.
+						(emoji.id ?? emoji.name) === (channel.emojiID ?? "⭐") && // The emoji is the one of the starboard channel. (By default (AKA channel.emojiID is undefined), the starboard emoji is a star emoji ⭐)
 						channel.channelID !== message.channelId // The message is not in the starboard channel
 					) {
 						// When the owner or an admin adds a channel, the bot would have checked that the channel is not of type CategoryChannel or type ForumChannel.
@@ -59,7 +59,7 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 									{
 										// If emoji.id is truthy, that means that it is a string, and therefore the starboardEmoji is a GuildEmoji, since the bot checks whenever a starboard emoji is deleted.
 										title: `${emoji.id ? `<:${(starboardEmoji as GuildEmoji).animated ? "a:" : ""}_:` : ""}${
-											channel.emojiID
+											channel.emojiID ?? "⭐"
 										}${emoji.id ? ">" : ""} ${reaction.count} | <t:${Math.round(Date.now() / 1000)}:R> | <#${
 											message.channelId
 										}>`,
