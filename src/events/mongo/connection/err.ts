@@ -1,9 +1,13 @@
 import chalk from "chalk";
+import {MongooseError} from "mongoose";
+import {MongoEvent} from "types";
 
-export const err = {
-	execute(error: Error) {
-		console.log(
-			chalk.cyan(`${chalk.bold("\n[Database Status]")} An error occurred with the database connection: \n${error}\n`)
-		);
+const {bold, redBright} = chalk;
+
+export const err: MongoEvent = {
+	execute(error: MongooseError) {
+		console.log(redBright(`\n${bold("[Database Status]")} ${error.name}`));
+		console.error(error);
+		console.log();
 	}
 };
