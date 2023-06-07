@@ -1,7 +1,10 @@
 import chalk from "chalk";
+import {MongoEvent} from "types";
 
-export const disconnected = {
+const {red, bold} = chalk;
+
+export const disconnected: MongoEvent = {
 	execute() {
-		console.log(chalk.red(`\n${chalk.bold("[Database Status]")} Disconnected.\n`));
+		console.log(red(`\n${bold("[Database Status]")} Disconnected.\n`));
 	}
 };
