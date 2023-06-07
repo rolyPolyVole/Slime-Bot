@@ -1,4 +1,22 @@
+import {AutocompleteInteraction, ImageURLOptions, Interaction} from "discord.js";
 import {readdirSync} from "fs";
+import {BotClient} from "types";
+import chalk from "chalk";
+
+const {whiteBright, bold} = chalk;
+
+/**
+ * ! By default, exports are sorted by:
+ * * 1. Functions -> Classes -> Enums -> Objects -> Regular Expressions -> Arrays.
+ * * 2. The order they were created in, with oldest being first.
+ * However, if two exports are related, E.g., the `isValidURL` function & the `URLRegExp` regular expression, they should be put together, with the export that has *higher priority* in the normal order being first, **unless** the *higher priority* export is in some way a more advanced form of the *lower priority* export, **or** if the *lower priority* export is used by the *higher priority* export.
+ * They should be located in the section that the higher order export would normally be located in.
+ * For example, the `isValidURL` function and the `URLRegExp` regular expression are related because they both involve URLs in strings, so they should be sorted together.
+ * `isValidURL` is a function and has higher priority than `URLRegExp`. It would normally go first, but `isValidURL` is basically a more advanced form of `URLRegExp`, so it goes second.
+ * Because `isValidURL` has a higher priority, both exports are located in the *functions* section.
+ */
+
+// ! Functions
 
 /**
  * A function to loop over a folder containing categories, which themselves contain files. The files are passed as parameters to a callback function. Information about the files is logged to the console.
@@ -41,30 +59,6 @@ export const loopFolders = async (
 };
 
 /**
- * Some nice colours for embeds and what not.
- * @example
- * import {Colours} from "../../../utility.js";
- *
- * // Create an embed the colour (coloured side bar) of which exactly matches the colour of the embed itself, making it practically invisible.
- * // This results in a very clean and professional looking embed.
- * const embed = {
- * 	title: "Example Embed",
- * 	color: Colours.Transparent
- * };
- */
-export enum Colours {
-	/**
-	 * A colour that exactly matches the colour of embed backgrounds using dark theme.
-	 */
-	Transparent = 0x2b2d31,
-	/**
-	 * A colour that matches the colour of embed backgrounds using light theme.
-	 * Note: Not confirmed whether the colour actually matches, no way I'm going to enable Discord light theme to test.
-	 */
-	TransparentBright = 0xf2f3f5
-}
-
-/**
  * A regular expression that matches all URLs in a string. (Global and ignore case flags)
  * @example
  * import {URLRegExp} from "../../../utility.js";
@@ -94,6 +88,19 @@ export const isValidURL = (urlString: string): boolean =>
 	/^(https?:\/\/)((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i.test(
 		urlString
 	);
+
+/**
+ * Some nice colours for embeds and what not.
+ * @example
+ * import {Colours} from "../../../utility.js";
+ *
+ * // Create an embed the colour (coloured side bar) of which exactly matches the colour of the embed itself, making it practically invisible.
+ * // This results in a very clean and professional looking embed.
+ * const embed = {
+ * 	title: "Example Embed",
+ * 	color: Colours.Transparent
+ * };
+ */
 
 /**
  * A list of all (probably most) valid image file extensions.
@@ -159,3 +166,163 @@ export const invertObject = (object: {[key: string]: string}) => {
 
 	return newObject;
 };
+
+export const handleError = async (interaction: Interaction, client: BotClient, error: unknown) => {
+	console.error(error);
+
+	const {discordBotOwnerID, discordGuildID, discordSupportChannelID} = process.env;
+
+	const discordBotOwner = discordBotOwnerID ? await client.users.fetch(discordBotOwnerID) : null;
+
+	const discordGuild = discordGuildID ? await client.guilds.fetch(discordGuildID) : null;
+
+	const discordGuildInvite = discordGuildID
+		? [...((await discordGuild?.invites?.fetch())?.values() ?? [])].sort((a, b) =>
+				!a.temporary
+					? 1
+					: // These are guaranteed to be numbers as we have already checked whether the invite has an infinite duration.
+					(a.maxAge as number) > (b.maxAge as number)
+					? 1
+					: a.maxAge === b.maxAge
+					? (a.maxUses ?? Infinity) - (b.maxUses ?? Infinity)
+					: 0
+		  )[0].code
+		: null;
+
+	const errorReply = {
+		embeds: [
+			{
+				title: `<:_:${Emojis.Error}> Error!`,
+				description: `\`${
+					client.user?.username as string
+				}\` has encountered an error while executing the interaction:\n\n\`\`\`css\n${error}\`\`\`\n> Interaction Custom ID / Name: \`${
+					// This is needed or else TypeScript will complain.
+					interaction.type === 2 || interaction.isAutocomplete() ? interaction.commandName : interaction.customId
+				}\`\n\n${
+					discordGuildID && discordBotOwnerID
+						? `Please report this error to ${
+								interaction.guildId === discordGuildID ? `<@${discordBotOwnerID}>` : `\`${discordBotOwner?.username}\``
+						  } ${
+								interaction.guildId === discordGuildID
+									? `${discordSupportChannelID ? `in <#${discordSupportChannelID}>` : ""}`
+									: `on [the support server](https://www.discord.gg/${discordGuildInvite})`
+						  }!`
+						: ""
+				}`.trim(),
+				color: 0xff0000,
+				author: {
+					name: client.user?.username as string,
+					url: "https://github.com/Slqmy/Slime-Bot",
+					icon_url: client.user?.displayAvatarURL(displayAvatarURLOptions)
+				},
+				footer: {
+					text: interaction.user.username,
+					icon_url: interaction.user.displayAvatarURL(displayAvatarURLOptions)
+				},
+				timestamp: new Date(Date.now()).toISOString()
+			}
+		]
+	};
+
+	if (process.env.debug)
+		console.log(
+			bold("\nInteraction Information:") +
+				whiteBright(
+					bold("\nInteraction date: ") +
+						new Date(interaction.createdTimestamp) +
+						bold("\nInteraction timestamp: ") +
+						interaction.createdTimestamp +
+						bold("\nGuild name: ") +
+						interaction.guild?.name +
+						bold("\nGuild ID: ") +
+						interaction.guild?.id +
+						bold("\nChannel name: ") +
+						interaction.channel?.name +
+						bold("\nChannel ID: ") +
+						interaction.channel?.id +
+						bold("\nUser tag: ") +
+						interaction.user.tag +
+						bold("\nUser ID: ") +
+						interaction.user.id +
+						bold("\nMessage content: ") +
+						(interaction.message?.content === "" ? chalk.italic("No content") : interaction.message?.content) +
+						bold("\nMessage embed title: ") +
+						(interaction.message?.embeds?.[0]?.data?.title ?? chalk.italic("No embeds or no embed title")) +
+						bold("\nMessage ID: ") +
+						interaction.message?.id +
+						bold("\nMessage date: ") +
+						new Date(interaction.message?.createdTimestamp) +
+						bold("\nMessage timestamp: ") +
+						`${interaction.message?.createdTimestamp}` +
+						"\n"
+				)
+		);
+
+	if (!(interaction instanceof AutocompleteInteraction)) {
+		try {
+			await interaction.reply(errorReply);
+			// The variable is shadowed but it doesn't matter since 'error' isn't used beyond this point anyway.
+		} catch (error) {
+			await interaction.editReply(errorReply).catch(console.error);
+		}
+	}
+};
+
+// ! Classes
+
+// ! Enums
+
+export enum Colours {
+	/**
+	 * A colour that exactly matches the colour of embed backgrounds using dark theme.
+	 */
+	Transparent = 0x2b2d31,
+	/**
+	 * A colour that matches the colour of embed backgrounds using light theme.
+	 * Note: Not confirmed whether the colour actually matches, no way I'm going to enable Discord light theme to test.
+	 */
+	TransparentBright = 0xf2f3f5
+}
+
+/**
+ * An enum of emoji IDs of emojis from `🌌 The Slimy Swamp 🌳` guild that the bot can use.
+ * @example
+ * // Using the YouTube logo emoji to create a nice message for the YouTube upload tracker.
+ * import {Emojis} from "../../../utility.js";
+ *
+ * // ...
+ *
+ * await discordChannel.send({
+ *		// The emoji name does not need to be in between the two colons.
+ *		// In fact, basically any string can go there.
+ *		// To save space, just use underscores.
+ *		content: `<:_:${Emojis.YouTubeLogo}:> ${pingRoleID ? `<@&${pingRoleID}> ` : ""}${title} has uploaded a new video!`,
+ *		embeds: [
+ *	// ...
+ * ]
+ * })
+ */
+export enum Emojis {
+	YouTubeLogo = "1115689277397926022", // https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/1024px-YouTube_full-color_icon_%282017%29.svg.png
+	Error = "1115712640954683534"
+}
+
+// ! Objects
+
+/**
+ * Some options for the `displayAvatarURL()` function that ensure the best quality avatar.
+ */
+export const displayAvatarURLOptions: ImageURLOptions = {
+	/**
+	 * `forceStatic: false` - If the avatar is animated, don't force it to be static.
+	 */
+	forceStatic: false,
+	/**
+	 * `Size: 4096` - Make sure that the avatar is of the maximum size.
+	 */
+	size: 4096
+};
+
+// ! Regular Expressions
+
+// ! Arrays
