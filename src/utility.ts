@@ -90,19 +90,6 @@ export const isValidURL = (urlString: string): boolean =>
 	);
 
 /**
- * Some nice colours for embeds and what not.
- * @example
- * import {Colours} from "../../../utility.js";
- *
- * // Create an embed the colour (coloured side bar) of which exactly matches the colour of the embed itself, making it practically invisible.
- * // This results in a very clean and professional looking embed.
- * const embed = {
- * 	title: "Example Embed",
- * 	color: Colours.Transparent
- * };
- */
-
-/**
  * A list of all (probably most) valid image file extensions.
  */
 export const ImageExtensions = [
@@ -213,11 +200,11 @@ export const handleError = async (interaction: Interaction, client: BotClient, e
 				author: {
 					name: client.user?.username as string,
 					url: "https://github.com/Slqmy/Slime-Bot",
-					icon_url: client.user?.displayAvatarURL(displayAvatarURLOptions)
+					icon_url: client.user?.displayAvatarURL()
 				},
 				footer: {
 					text: interaction.user.username,
-					icon_url: interaction.user.displayAvatarURL(displayAvatarURLOptions)
+					icon_url: interaction.user.displayAvatarURL()
 				},
 				timestamp: new Date(Date.now()).toISOString()
 			}
@@ -268,10 +255,80 @@ export const handleError = async (interaction: Interaction, client: BotClient, e
 	}
 };
 
+/**
+ * The standard, untouched console log function.
+ */
+const standardLog = console.log.bind(console);
+
+/**
+ * List of all logged messages on the console.
+ */
+const consoleLogs: unknown[][] = [];
+
+/**
+ * Refactored version of `console.log` that ensures that there are never more than two new lines between logged strings.
+ * *(in reality, the function reduces the number of new lines between two logged strings by 1 (if needed), which, in most cases, results in two new lines remaining, which is the intended behavior)*
+ * This creates a *very clean* and *professional* looking console with *consistent newlines*.
+ * *Otherwise, there would be inconsistent new lines.*
+ * E.g,
+ *
+ * [Database Status] Connecting...
+ *
+ * [Debug] [WS => Shard 0] Shard received all its guilds. Marking as fully ready.
+ *
+ * [Client] Ready! Online and logged in as 🌳 Slime Bot [/].
+ *
+ *
+ * [Database Status] Connected.
+ *
+ * Between the client and database status messages, there are **three** new lines, which is *inconsistent* with the overall console style.
+ * This refactoring of the function fixes that issue:
+ *
+ * [Database Status] Connecting...
+ *
+ * [Debug] [WS => Shard 0] Shard received all its guilds. Marking as fully ready.
+ *
+ * [Client] Ready! Online and logged in as 🌳 Slime Bot [/].
+ *
+ * [Database Status] Connected.
+ */
+console.log = (...data) => {
+	const previousLogs = consoleLogs[consoleLogs.length - 1];
+	const previousLog = previousLogs?.[previousLogs.length - 1];
+
+	const latestLog = data[data.length - 1];
+
+	if (
+		typeof latestLog === "string" &&
+		typeof previousLog === "string" &&
+		// Remove possible control characters added by chalk.
+		latestLog.replace(ANSIControlCharacterRegExp, "").startsWith("\n") &&
+		previousLog.replace(ANSIControlCharacterRegExp, "").endsWith("\n")
+	) {
+		data[data.length - 1] = latestLog.replace(/\n/, "");
+	}
+
+	standardLog(...data);
+
+	consoleLogs.push(data);
+};
+
 // ! Classes
 
 // ! Enums
 
+/**
+ * Some nice colours for embeds and what not.
+ * @example
+ * import {Colours} from "../../../utility.js";
+ *
+ * // Create an embed the colour (coloured side bar) of which exactly matches the colour of the embed itself, making it practically invisible.
+ * // This results in a very clean and professional looking embed.
+ * const embed = {
+ * 	title: "Example Embed",
+ * 	color: Colours.Transparent
+ * };
+ */
 export enum Colours {
 	/**
 	 * A colour that exactly matches the colour of embed backgrounds using dark theme.
@@ -312,7 +369,7 @@ export enum Emojis {
 /**
  * Some options for the `displayAvatarURL()` function that ensure the best quality avatar.
  */
-export const displayAvatarURLOptions: ImageURLOptions = {
+export const DisplayAvatarURLOptions: ImageURLOptions = {
 	/**
 	 * `forceStatic: false` - If the avatar is animated, don't force it to be static.
 	 */
@@ -324,5 +381,27 @@ export const displayAvatarURLOptions: ImageURLOptions = {
 };
 
 // ! Regular Expressions
+
+/**
+ * A regular expression to match ANSI control characters.
+ * This is useful for cleaning up strings that were changed in some way by the `chalk` module.
+ * @example
+ * // Removing control characters added by chalk.
+ * import {ANSIControlCharacterRegExp} from "../../../utility.js";
+ * import chalk from "chalk";
+ *
+ * const {redBright, bold} = chalk;
+ *
+ * const message = redBright(bold("Hello, world!"));
+ *
+ * console.log(JSON.stringify(message));
+ * // => "\u001b[91m\u001b[1mHello, world!\u001b[22m\u001b[39m"
+ *
+ * const trimmedMessage = message.replace(ANSIControlCharacterRegExp, "");
+ *
+ * console.log(JSON.stringify(trimmedMessage), trimmedMessage);
+ * // => "Hello, world!" Hello, world!
+ */
+export const ANSIControlCharacterRegExp = /\x1B|\[\d{1,2}m/g;
 
 // ! Arrays
