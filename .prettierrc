@@ -8,5 +8,6 @@
 	"bracketSpacing": false,
 	"bracketSameLine": false,
 	"arrowParens": "always",
-	"endOfLine": "lf"
+	"endOfLine": "lf",
+	"quoteProps": "consistent"
 }
