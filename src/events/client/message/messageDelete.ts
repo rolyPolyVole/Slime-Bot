@@ -1,10 +1,11 @@
 import {invertObject} from "../../../utility.js";
 import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 import {Event} from "types";
+import {evaluate, isComplex, isResultSet} from "mathjs";
 
 export const messageDelete: Event<"messageDelete"> = {
 	async execute(_client, message) {
-		const {guildId} = message;
+		const {guildId, channel} = message;
 
 		if (guildId) {
 			const guildSettings = await guildSettingsSchema.findOne({id: guildId});
@@ -31,6 +32,36 @@ export const messageDelete: Event<"messageDelete"> = {
 				});
 
 				await guildSettings.save();
+			}
+
+			if (message.content && guildSettings?.counting?.channels.length) {
+				for (const countingChannel of guildSettings.counting.channels) {
+					if (countingChannel.channelID === message.channelId) {
+						let evaluatedExpression;
+
+						try {
+							evaluatedExpression = evaluate(message.content);
+						} catch (_error) {
+							return;
+						}
+
+						const expressionValue = isComplex(evaluatedExpression)
+							? evaluatedExpression.re
+							: isResultSet(evaluatedExpression)
+							? evaluatedExpression.entries[evaluatedExpression.entries.length - 1]
+							: evaluatedExpression;
+
+						if (expressionValue === countingChannel.count) {
+							await channel.send({
+								content: `<@${message.author?.id}> » ${expressionValue}`,
+								allowedMentions: {
+									parse: [],
+									users: []
+								}
+							});
+						}
+					}
+				}
 			}
 		}
 	}
