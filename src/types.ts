@@ -18,7 +18,11 @@ import {
  */
 export type BotClient = Client & {
 	commands: Collection<string, AnyCommand>;
-	commandArray: (SlashCommandBuilder | ContextMenuCommandBuilder)[];
+	commandArray: (
+		| SlashCommandBuilder
+		| Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">
+		| ContextMenuCommandBuilder
+	)[];
 	buttons: Collection<string, Button>;
 	selectMenus: Collection<string, SelectMenu>;
 	modals: Collection<string, Modal>;
@@ -33,7 +37,7 @@ export type BotClient = Client & {
  * A type for  handling Discord commands.
  */
 export type Command = {
-	data: SlashCommandBuilder;
+	data: SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
 	description?: string;
 	usage: string[];
 	examples?: string[];
@@ -45,7 +49,7 @@ export type Command = {
  * - Note that examples are required for this command type.
  */
 export type AutoCompleteCommand = {
-	data: SlashCommandBuilder;
+	data: SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
 	description?: string;
 	usage: string[];
 	examples: string[];
