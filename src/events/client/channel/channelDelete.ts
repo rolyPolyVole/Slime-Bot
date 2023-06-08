@@ -21,10 +21,19 @@ export const channelDelete: Event<"channelUpdate"> = {
 			}
 
 			// YouTube notification poster Discord channel deletion check.
-			if (guildSettings?.youtube?.channels?.length) {
+			if (guildSettings?.youtube?.channels.length) {
 				guildSettings.youtube.channels.forEach((channelSettings, index) => {
 					if (channelSettings.discordChannelID === channel.id) {
 						guildSettings.youtube?.channels.splice(index, 1);
+					}
+				});
+			}
+
+			// Counting channel deletion check.
+			if (guildSettings?.counting?.channels.length) {
+				guildSettings.counting.channels.forEach((countingChannel, index) => {
+					if (countingChannel.channelID === channel.id) {
+						guildSettings.counting?.channels.splice(index, 1);
 					}
 				});
 			}
