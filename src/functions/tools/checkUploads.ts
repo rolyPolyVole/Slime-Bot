@@ -11,7 +11,7 @@ export default (client: BotClient) => {
 		const guilds = await guildSettingsSchema.find();
 
 		for (const guild of guilds) {
-			if (guild.youtube?.channels?.length) {
+			if (guild.youtube?.channels.length) {
 				let index = 0;
 				for (const channel of guild.youtube.channels) {
 					const channelData = await parser.parseURL(
