@@ -19,7 +19,9 @@ The bot's main purpose is to provide key functionality and useful features for t
   - [x] Delete starboard message data when the starboard message is deleted (100% complete)
   - [ ] Starboard settings (0% complete)
 - [ ] Tickets (0% complete)
-- [ ] Counting system (0% complete)
+- [ ] Counting system (50% complete)
+  - [x] Counting system code (100% complete)
+  - [ ] Counting system settings (0% complete)
 - [ ] Audit log tracker (0% complete)
 - [ ] Private VC system (0% complete)
 
