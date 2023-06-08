@@ -1,4 +1,11 @@
-import {AutocompleteInteraction, ImageURLOptions, Interaction, InteractionType, TextChannel} from "discord.js";
+import {
+	APIEmbed,
+	AutocompleteInteraction,
+	ImageURLOptions,
+	Interaction,
+	InteractionType,
+	TextChannel
+} from "discord.js";
 import {readdirSync} from "fs";
 import {BotClient} from "types";
 import chalk from "chalk";
@@ -484,6 +491,34 @@ console.log = (...data) => {
 	consoleLogs.push(data);
 };
 
+/**
+ * A function to easily create a simple success message.
+ * @param {string} message The message to display in the embed.
+ * @returns {{embeds: [APIEmbed]}} A simple embed with the success message.
+ */
+export const createSuccessMessage = (message: string): {embeds: [APIEmbed]} => ({
+	embeds: [
+		{
+			description: `${Emojis.Success} ${message}`,
+			color: Colours.Transparent
+		}
+	]
+});
+
+/**
+ * A function to easily create a simple error message.
+ * @param {string} message The message to display in the embed.
+ * @returns {{embeds: [APIEmbed]}} A simple embed with the error message.
+ */
+export const createErrorMessage = (message: string): {embeds: [APIEmbed]} => ({
+	embeds: [
+		{
+			description: `${Emojis.Error} ${message}`,
+			color: Colours.Transparent
+		}
+	]
+});
+
 // ! Classes
 
 // ! Enums
@@ -549,6 +584,7 @@ export enum Colours {
  */
 export enum Emojis {
 	YouTubeLogo = "1115689277397926022", // https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/1024px-YouTube_full-color_icon_%282017%29.svg.png
+	Success = "",
 	Error = "1115712640954683534"
 }
 
