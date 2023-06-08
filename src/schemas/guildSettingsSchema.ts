@@ -26,6 +26,9 @@ const guildSettingsSchema = new Schema({
 				}
 			}
 		]
+	},
+	counting: {
+		channels: [{channelID: String, count: Number, latestCountAuthorID: String}]
 	}
 });
 
