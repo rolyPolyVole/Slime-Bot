@@ -1,14 +1,26 @@
 import {
 	APIEmbed,
+	AttachmentBuilder,
 	AutocompleteInteraction,
+	ChatInputCommandInteraction,
+	EmbedBuilder,
+	Guild,
+	GuildChannel,
+	GuildMember,
 	ImageURLOptions,
 	Interaction,
 	InteractionType,
-	TextChannel
+	Message,
+	MessageReaction,
+	PermissionsBitField,
+	TextChannel,
+	resolveColor
 } from "discord.js";
 import {readdirSync} from "fs";
 import {BotClient} from "types";
 import chalk from "chalk";
+import {createCanvas} from "canvas";
+import {evaluate} from "mathjs";
 
 const {whiteBright, bold} = chalk;
 
@@ -519,7 +531,403 @@ export const createErrorMessage = (message: string): {embeds: [APIEmbed]} => ({
 	]
 });
 
+/**
+ * Resolves a date from a given string.
+ * @param {string} string The string to resolve the date of.
+ * @returns {number} The resolved date.
+ * @example
+ * resolveDate("In 5 days"); // Returns Date.now() + 5 * 24 * 60 * 60 * 1000.
+ * resolveDate("Now"); // Returns Date.now().
+ * resolveDate("5 min"); // Returns 5 * 60 * 1000.
+ */
+export const resolveDate = (string: string): number | null => {
+	if (/now/gi.test(string)) return Date.now();
+
+	const durations: {[key: string]: number} = {
+		minute: 60000,
+		min: 60000,
+		m: 60000,
+		hour: 3600000,
+		h: 3600000,
+		day: 86400000,
+		d: 86400000,
+		week: 604800000,
+		w: 604800000,
+		mo: 2592000000,
+		month: 2592000000
+	};
+
+	try {
+		string = string.replace(/(\d+)/g, "+ $1 *").replace(/ /g, "").trim();
+
+		for (const time in durations) {
+			string = string.replace(new RegExp(`${time}s?`, "ig"), `${durations[time]}`);
+		}
+
+		if (string.startsWith("in")) return Date.now() + evaluate(/(?<=in).+/.exec(string)?.[0] ?? "0");
+
+		if (string.endsWith("ago")) return Date.now() - evaluate(/.+(?=ago)/.exec(string)?.[0] ?? "0");
+
+		return evaluate(string);
+	} catch (error) {
+		return null;
+	}
+};
+
+/**
+ * Checks whether an array of users have a permissions.
+ * @param {string[]} permissions The permissions to check.
+ * @param {GuildMember[]} users The users to check if they have the permissions.
+ * @param {GuildChannel?} channel The channel to check the permissions in.
+ * @param {Guild} guild The guild to check the permissions in.
+ * @param {GuildMember} defaultUser The user who is considered the default user. Will display "*You* do not have the permission." if the user does not have a permission.
+ * @returns {Promise<{value: boolean;permission?: string;user?: GuildMember;message?: string;}>} Object with information about the permissions.
+ */
+export const checkPermissions = async (
+	permissions: string[],
+	users: GuildMember[],
+	channel: GuildChannel | null,
+	guild: Guild,
+	defaultUser: GuildMember
+): Promise<{
+	value: boolean;
+	permission?: string;
+	user?: GuildMember;
+	message?: string;
+}> => {
+	permissions = permissions.length ? permissions : ["ViewChannel", "SendMessages"];
+
+	for (const permission of permissions) {
+		if (permission) {
+			for (let user of users) {
+				user = await guild.members.fetch(user.id);
+
+				if (!channel) {
+					if (!user.permissions.has(PermissionsBitField.Flags[permission])) {
+						return {
+							permission,
+							user,
+							value: false,
+							message: `${
+								user.id === defaultUser.id ? "You do " : `<#${user.id}> does `
+							}not have the \`${permission}\` permission!`
+						};
+					}
+					continue;
+				}
+
+				const userChannelPermissions = channel.permissionsFor(user);
+
+				if (!userChannelPermissions.has(PermissionsBitField.Flags[permission])) {
+					return {
+						permission,
+						user,
+						value: false,
+						message: `${
+							user.id === defaultUser.id ? "You do " : `<@${user.id}> does `
+						}not have the \`${permission}\` permission in the <#${channel.id}> channel!`
+					};
+				}
+			}
+		}
+	}
+
+	return {value: true};
+};
+
 // ! Classes
+
+/**
+ * A class to create a poll message based on a command, the poll message, or a reaction.
+ */
+export class PollMessageBuilder {
+	emojis: (string | null)[];
+	options: (string | null)[];
+	content: string;
+	embeds: APIEmbed[];
+	files: string[];
+	constructor() {
+		this.emojis = [];
+		this.options = [];
+		this.content = "";
+		this.embeds = [];
+		this.files = [];
+	}
+	async create(data: {message: Message} | MessageReaction | ChatInputCommandInteraction, client: BotClient) {
+		const embed = !(data instanceof ChatInputCommandInteraction) ? data.message?.embeds?.[0]?.data : undefined;
+		const role = data instanceof ChatInputCommandInteraction ? data.options.getRole("required-role") : null;
+		const timestamp = data instanceof ChatInputCommandInteraction ? data.options.getString("duration") : null;
+		const ping = data instanceof ChatInputCommandInteraction ? data.options.getRole("ping") : null;
+		const pollEnd = embed ? embed.fields?.[1].value.match(/(?<=\*Poll ends:\* <t:)\d+(?=>)/)?.[0] : null;
+
+		this.emojis = [];
+
+		this.options = [];
+
+		const emojiReg =
+			/^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|1️⃣|2️⃣|3️⃣|4️⃣|5️⃣|6️⃣|7️⃣|8️⃣|9️⃣|🔟)/;
+
+		const afterEmojiReg =
+			/(?<=^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|1️⃣|2️⃣|3️⃣|4️⃣|5️⃣|6️⃣|7️⃣|8️⃣|9️⃣|🔟)).+/;
+
+		if (embed) {
+			const optionArray = (
+				(embed.description as string).match(
+					/(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|1️⃣|2️⃣|3️⃣|4️⃣|5️⃣|6️⃣|7️⃣|8️⃣|9️⃣|🔟).+/gm
+				) as RegExpMatchArray
+			).filter((option: string) => !option.startsWith("█"));
+
+			for (const option of optionArray) {
+				const emoji = (emojiReg.exec(option) as RegExpMatchArray)[0];
+
+				if (emojiArray.includes(emoji)) {
+					const index = emojiArray.indexOf(emoji);
+					this.emojis[index] = emoji;
+					this.options[index] = afterEmojiReg.exec(option)?.[0] ?? " ";
+				} else {
+					this.emojis.push(emoji);
+					this.options.push(afterEmojiReg.exec(option)?.[0] ?? " ");
+				}
+			}
+		} else if (data instanceof ChatInputCommandInteraction) {
+			for (let i = 1; i <= 10; i++) {
+				const option = data.options.getString(`choice-${i}`);
+
+				const emoji = emojiReg.exec(option ?? "")?.[0];
+
+				const afterEmojiMatch = afterEmojiReg.exec(option ?? "")?.[0];
+
+				if (emoji && !this.emojis.includes(emoji) && !emojiArray.includes(emoji)) {
+					this.emojis.push(emoji);
+					this.options.push(afterEmojiMatch ?? " ");
+				} else {
+					const optionEmojisOption: string | undefined = optionEmojis[(option ?? "").toLowerCase()];
+
+					this.emojis.push(
+						option
+							? optionEmojisOption && !this.emojis.includes(optionEmojisOption)
+								? optionEmojisOption
+								: emojiArray[i - 1]
+							: null
+					);
+					this.options.push(option);
+				}
+			}
+
+			this.emojis = this.emojis.filter((emoji) => emoji).length ? this.emojis : ["👍", "👎"];
+			this.options = this.options.filter((option) => option).length ? this.options : ["Yes", "No"];
+		}
+
+		if (!(data instanceof ChatInputCommandInteraction))
+			this.content = data.message?.content ?? (ping ? `<@&${ping.id}>` : "");
+
+		let description = "";
+
+		const reactions = !(data instanceof ChatInputCommandInteraction)
+			? [...data.message.reactions.cache.values()].filter((reaction) => this.emojis.includes(reaction.emoji.name))
+			: this.options.filter((option) => option).map(() => ({count: 1}));
+
+		const totalReactions = reactions.reduce((reactionsCount, reaction) => reactionsCount + reaction.count - 1, 0);
+
+		const canvas = createCanvas(500, 500);
+		const ctx = canvas.getContext("2d");
+
+		ctx.save();
+
+		let currentAngle = 0;
+		let reactionIndex = 0;
+
+		for (let i = 0; i < 10; i++) {
+			if (this.options[i]) {
+				const progressBar =
+					(reactions ? reactions.map((reaction) => reaction.count - 1)[reactionIndex] / totalReactions : 0) * 10 || 0;
+
+				description += `\n\n${this.emojis[i]} ${this.options[i]}\n\`${
+					"█".repeat(Math.round(progressBar)) + " ".repeat(Math.round(10 - progressBar))
+				}\` | ${(progressBar * 10).toFixed(2)}% (${
+					reactions ? reactions.map((e) => e.count - 1)[reactionIndex] ?? 0 : "0"
+				})`;
+
+				if (reactions[reactionIndex].count - 1 || totalReactions === 0) {
+					ctx.restore();
+
+					const portionAngle =
+						((reactions[reactionIndex].count - 1) / totalReactions ||
+							1 / this.options.filter((option) => option).length) *
+						2 *
+						Math.PI;
+
+					ctx.beginPath();
+
+					ctx.arc(250, 250, 250, currentAngle, currentAngle + portionAngle); // Draws circle slice with radius of 250 around x: 250, y:250.
+
+					currentAngle += portionAngle;
+
+					ctx.lineTo(250, 250); // Draws a line to the center of the circle.
+
+					ctx.fillStyle = rainbowColourArray[i];
+
+					ctx.fill(); // Fills the circle.
+
+					ctx.fillStyle = "#FFFFFF";
+
+					ctx.translate(250, 250); // Center the canvas around the center of the pie chart.
+
+					// If the option is the only option with any votes, then the option text will be displayed in the middle of the pie chart.
+					if (totalReactions !== reactions[reactionIndex].count - 1 || !totalReactions) {
+						ctx.rotate(currentAngle - portionAngle * 0.5); // Rotate the canvas so the x axis intersects the center radius of one of current sector of the pie chart.
+
+						ctx.translate(250 / 2, 0); // Move the canvas forward so it is now centred around the center point of the current sector of the pie chart.
+
+						ctx.rotate(-(currentAngle - portionAngle * 0.5)); // Rotate the canvas so it is now the normal rotation.
+					}
+
+					const fontSize = Math.min((reactions[reactionIndex].count / totalReactions) * 25, 25);
+
+					ctx.font = `${fontSize}px "Noto Colour Emoji"`;
+
+					const emojiLength = ctx.measureText(this.emojis[i]).width;
+
+					ctx.font = `${fontSize}px "Odin Rounded Light"`;
+
+					const text = `${this.options[i]?.trim() ? " " : ""}${this.options[i]?.trim()} - ${(progressBar * 10).toFixed(
+						2
+					)}%`;
+
+					const textLength = ctx.measureText(text).width;
+
+					const stringLength = emojiLength + textLength;
+
+					ctx.translate(-(stringLength / 2), fontSize / 2); // Move the canvas back so the text is centred.
+
+					ctx.font = `${fontSize}px "Noto Colour Emoji"`;
+
+					ctx.fillText(this.emojis[i], 0, 0); // Writes the emoji.
+
+					ctx.translate(emojiLength, 0); // Move forward so the text is after the emoji
+
+					ctx.font = `${fontSize}px "Odin Rounded Light"`;
+
+					ctx.fillText(text, 0, 0); // Writes the text.
+
+					ctx.translate(-emojiLength, 0); // Moves back the length of the emoji.
+
+					ctx.translate(stringLength / 2, -fontSize / 2); // Start undoing the whole process (move the canvas forward so it is centred around the center point of the current sector of the pie chart.)
+
+					if (totalReactions !== reactions[reactionIndex].count - 1 || !totalReactions) {
+						ctx.rotate(currentAngle - portionAngle * 0.5); // Rotate it and prepare to go back to the center of the pie chart.
+
+						ctx.translate(-(250 / 2), 0); // Go back to the center of the pie chart.
+
+						ctx.rotate(-(currentAngle - portionAngle * 0.5)); // Rotate it normally.
+					}
+
+					ctx.translate(-250, -250); // Center the canvas around 0, 0.
+				}
+
+				reactionIndex++;
+			}
+		}
+
+		let attachment: AttachmentBuilder | string = new AttachmentBuilder(canvas.toBuffer(), {
+			name: `slime-bot-poll-${new Date(Date.now())}.png`
+		});
+
+		const user = await client.users.fetch("500690028960284672");
+
+		const message: Message = await user.send({files: [attachment]});
+
+		attachment = [...message.attachments.values()][0].attachment.toString();
+
+		const pollTime =
+			timestamp || pollEnd
+				? pollEnd ??
+				  Math.round(
+						(Date.now() + resolveDate(/^in.+/.test(timestamp.trim()) ? timestamp.match(/(?<=^in).+/)[0] : timestamp)) /
+							1000
+				  )
+				: null;
+
+		this.embeds = [
+			new EmbedBuilder()
+				.setTitle(embed?.title ?? data.options.getString("message"))
+				.setDescription(
+					(embed
+						? embed.description.match(
+								new RegExp(`^[\\s\\S]+(?=${this.emojis.filter((emoji) => emoji)[0]})`, "gm")
+						  )?.[0] ?? ""
+						: data.options.getString("description") ?? "") + description
+				)
+				.setColor(
+					embed?.color ??
+						(() => {
+							try {
+								return resolveColor(data.options.getString("colour"));
+							} catch (error) {}
+							return null;
+						})() ??
+						0x5865f2
+				)
+				.setAuthor({
+					name: `${client.user?.username} Poll${pollEnd && pollEnd * 1000 <= Date.now() ? " - Ended" : ""}`,
+					iconURL: client.user?.displayAvatarURL({
+						size: 4096,
+						extension: "png"
+					})
+				})
+				.setFooter({
+					text: embed?.footer?.text ?? `Poll by ${data.user.username}`,
+					iconURL:
+						embed?.footer?.icon_url ??
+						data.user.displayAvatarURL({
+							size: 4096,
+							extension: "png"
+						})
+				})
+				.setTimestamp(embed?.timestamp ? Date.parse(embed.timestamp) : Date.now())
+				.addFields([
+					{
+						name: "👤 Poll Creator",
+						value:
+							embed?.fields?.[0]?.value ?? (data.options.getBoolean("anonymous") ? "Anonymous" : `<@${data.user.id}>`),
+						inline: true
+					},
+					{
+						name: "⚙ Poll Settings",
+						value:
+							embed && !pollEnd
+								? embed.fields[1].value
+								: `*Max options:* \`${
+										embed
+											? embed.fields[1].value.match(/(?<=\*Max options:\* `).+(?=`)/)[0]
+											: data.options.getString("max-options") ?? "Unlimited"
+								  }\`\n*Required role:* ${
+										role
+											? `<@&${role.id}>`
+											: embed
+											? embed.fields[1].value.match(/(?<=\*Required role:\* )(`None`|<@&\d+>)/)[0]
+											: "`None`"
+								  }\n*Poll end${pollEnd && pollEnd * 1000 <= Date.now() ? "ed" : "s"}:* ${
+										timestamp || pollEnd ? `<t:${pollTime}> (<t:${pollTime}:R>)` : "`Never`"
+								  }`,
+						inline: true
+					}
+				])
+				.setThumbnail(attachment)
+		];
+
+		this.files = data.message ? [...data.message.attachments.values()].map((attachment) => attachment.attachment) : [];
+
+		if (!data.message) {
+			for (const attachment of (data.options.getString("attachments") ?? "").split(",")) {
+				if (isValidURL(attachment)) {
+					this.files.push(attachment);
+				}
+			}
+		}
+		return this;
+	}
+}
 
 // ! Enums
 
@@ -660,3 +1068,38 @@ export const DisplayAvatarURLOptions: ImageURLOptions = {
 export const ANSIControlCharacterRegExp = /\x1B|\[\d{1,2}m/g;
 
 // ! Arrays
+
+/**
+ * An array of number emoji characters (1️⃣, 2️⃣, 3️⃣ ...)
+ *
+ * Used in the poll system.
+ */
+export const emojiArray = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
+
+/**
+ * Object used by the poll system to represent certain options with different emojis.
+ *
+ * For example, instead of using the usual number emojis for the choices `yes` and `no`, thumbs up and thumbs down are used instead.
+ */
+export const optionEmojis: {[key: string]: string} = {
+	yes: "👍",
+	no: "👎"
+};
+
+/**
+ * Array of rainbow colours.
+ *
+ * Used in the poll system to have a colourful pie chart.
+ */
+export const rainbowColourArray = [
+	"#ff0033",
+	"#ff6633",
+	"#ffcc33",
+	"#ffff66",
+	"#ccff00",
+	"#66ff66",
+	"#aaf0d1",
+	"#33ccff",
+	"#0066ff",
+	"#a950b0"
+];
