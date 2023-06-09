@@ -1,4 +1,4 @@
-import {SlashCommandBuilder, ChannelType, TextChannel} from "discord.js";
+import {SlashCommandBuilder, ChannelType, TextChannel, User, Role, APIRole} from "discord.js";
 import {evaluate} from "mathjs";
 import mongoose from "mongoose";
 import {
@@ -6,7 +6,7 @@ import {
 	createErrorMessage,
 	PollMessageBuilder,
 	checkPermissions,
-	resolveDate
+	resolveDuration
 } from "../../utility.js";
 import temporaryDataSchema from "../../schemas/temporaryDataSchema.js";
 import {Command} from "../../types";
@@ -32,7 +32,7 @@ export const poll: Command = {
 					option
 						.setName("channel")
 						.setDescription("💬 The channel that the poll should be sent in")
-						.addChannelTypes(ChannelType.GuildText)
+						.addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
 				)
 				.addStringOption((option) =>
 					option
@@ -101,33 +101,46 @@ export const poll: Command = {
 		"poll create message: 🐈🐕 Are you a cat or a dog person? description: Which animal do you prefer? choice-1: 🐱 Cat choice-2: 🐶 Dog"
 	],
 	async execute(interaction, client) {
-		const {options} = interaction;
+		const {options, guild, user} = interaction;
 
-		if (!interaction.channel) return interaction.reply(createErrorMessage("This command can only be used in a guild!"));
+		if (!interaction.channel || !guild)
+			return interaction.reply(createErrorMessage("This command can only be used in a guild!"));
 
 		if (options.getSubcommand() === "create") {
 			let duration: string | number | null = options.getString("duration");
 
 			if (duration) {
 				try {
-					duration = evaluate(`${resolveDate(duration)}`);
+					duration = evaluate(`${resolveDuration(duration.replace(/( *in *)|( *ago *)/g, ""))}`);
 				} catch (error) {
 					return interaction.reply(createErrorMessage(`**Invalid duration provided:** ${duration}\n\n> ${error}`));
 				}
 			}
 
-			const channel = (interaction.options.getChannel("channel") ?? interaction.channel) as TextChannel;
+			const channel = (options.getChannel("channel") ?? interaction.channel) as TextChannel;
 
 			const permissions = await checkPermissions(
-				["ViewChannel", "SendMessages", "EmbedLinks"],
-				[interaction.user, client.user],
+				["ViewChannel", "SendMessages", "EmbedLinks", "AddReactions", "UseApplicationCommands"],
+				[user],
 				channel,
-				interaction.guild,
-				interaction.user
+				guild,
+				user
 			);
 
 			if (!permissions.value) {
-				return interaction.reply(createErrorMessage(permissions.message));
+				return interaction.reply(createErrorMessage(permissions.message as string));
+			}
+
+			const botPermissions = await checkPermissions(
+				["ViewChannel", "SendMessages", "EmbedLinks", "AddReactions"],
+				[client.user as User],
+				channel,
+				guild,
+				user
+			);
+
+			if (!botPermissions.value) {
+				return interaction.reply(createErrorMessage(botPermissions.message as string));
 			}
 
 			await interaction.deferReply({
@@ -148,23 +161,24 @@ export const poll: Command = {
 					type: "poll",
 					data: {message: embedMessage.id, channel: channel.id},
 					creationDate: Date.now(),
-					lifeSpan: Math.floor((Date.now() + parseInt(`${duration}`)) / 1000)
+					lifeSpan: Math.round(parseInt(`${duration}`))
 				});
 
 				await temporary.save();
 			}
 
-			if (interaction.options.getString("thread-name")) {
+			if (options.getString("thread-name")) {
 				const thread = await embedMessage.startThread({
-					name: `${interaction.options.getString("thread-name")}`,
+					name: `${options.getString("thread-name")}`,
 					autoArchiveDuration: 60
 				});
-				if (interaction.options.getRole("ping-role")) {
-					await thread.send(`<@&${interaction.options.getRole("ping-role").id}>`);
+
+				if (options.getRole("ping-role")) {
+					await thread.send(`<@&${(options.getRole("ping-role") as Role | APIRole).id}>`);
 				}
 			}
 
-			await interaction.editReply(createSuccessMessage(`Successfully created and sent the poll in ${channel}.`));
+			await interaction.editReply(createSuccessMessage(`Successfully created and sent the poll in <#${channel.id}>.`));
 		}
 	}
 };
