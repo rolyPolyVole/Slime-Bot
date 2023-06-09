@@ -11,5 +11,7 @@ export const ready: Event<"ready"> = {
 		);
 
 		setInterval(client.checkUploads, 60000);
+
+		setInterval(client.checkTemporaryData, 60000);
 	}
 };
