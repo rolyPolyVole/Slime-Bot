@@ -14,6 +14,7 @@ import {
 	MessageReaction,
 	PermissionsBitField,
 	TextChannel,
+	User,
 	resolveColor
 } from "discord.js";
 import {readdirSync} from "fs";
@@ -536,11 +537,11 @@ export const createErrorMessage = (message: string): {embeds: [APIEmbed]} => ({
  * @param {string} string The string to resolve the date of.
  * @returns {number} The resolved date.
  * @example
- * resolveDate("In 5 days"); // Returns Date.now() + 5 * 24 * 60 * 60 * 1000.
- * resolveDate("Now"); // Returns Date.now().
- * resolveDate("5 min"); // Returns 5 * 60 * 1000.
+ * resolveDuration("In 5 days"); // Returns Date.now() + 5 * 24 * 60 * 60 * 1000.
+ * resolveDuration("Now"); // Returns Date.now().
+ * resolveDuration("5 min"); // Returns 5 * 60 * 1000.
  */
-export const resolveDate = (string: string): number | null => {
+export const resolveDuration = (string: string): number | null => {
 	if (/now/gi.test(string)) return Date.now();
 
 	const durations: {[key: string]: number} = {
@@ -558,7 +559,10 @@ export const resolveDate = (string: string): number | null => {
 	};
 
 	try {
-		string = string.replace(/(\d+)/g, "+ $1 *").replace(/ /g, "").trim();
+		string = string
+			.replace(/([0-9.]+)/g, "+ $1 *")
+			.replace(/ /g, "")
+			.trim();
 
 		for (const time in durations) {
 			string = string.replace(new RegExp(`${time}s?`, "ig"), `${durations[time]}`);
@@ -584,11 +588,11 @@ export const resolveDate = (string: string): number | null => {
  * @returns {Promise<{value: boolean;permission?: string;user?: GuildMember;message?: string;}>} Object with information about the permissions.
  */
 export const checkPermissions = async (
-	permissions: string[],
-	users: GuildMember[],
+	permissions: (keyof typeof PermissionsBitField.Flags)[],
+	users: User[],
 	channel: GuildChannel | null,
 	guild: Guild,
-	defaultUser: GuildMember
+	defaultUser: User
 ): Promise<{
 	value: boolean;
 	permission?: string;
@@ -599,14 +603,14 @@ export const checkPermissions = async (
 
 	for (const permission of permissions) {
 		if (permission) {
-			for (let user of users) {
-				user = await guild.members.fetch(user.id);
+			for (const user of users) {
+				const guildMember = await guild.members.fetch(user.id);
 
 				if (!channel) {
-					if (!user.permissions.has(PermissionsBitField.Flags[permission])) {
+					if (!guildMember.permissions.has(PermissionsBitField.Flags[permission])) {
 						return {
 							permission,
-							user,
+							user: guildMember,
 							value: false,
 							message: `${
 								user.id === defaultUser.id ? "You do " : `<#${user.id}> does `
@@ -618,10 +622,10 @@ export const checkPermissions = async (
 
 				const userChannelPermissions = channel.permissionsFor(user);
 
-				if (!userChannelPermissions.has(PermissionsBitField.Flags[permission])) {
+				if (!userChannelPermissions?.has(PermissionsBitField.Flags[permission])) {
 					return {
 						permission,
-						user,
+						user: guildMember,
 						value: false,
 						message: `${
 							user.id === defaultUser.id ? "You do " : `<@${user.id}> does `
@@ -843,7 +847,8 @@ export class PollMessageBuilder {
 			timestamp || pollEnd
 				? pollEnd ??
 				  Math.round(
-						(Date.now() + resolveDate(/^in.+/.test(timestamp.trim()) ? timestamp.match(/(?<=^in).+/)[0] : timestamp)) /
+						(Date.now() +
+							resolveDuration(/^in.+/.test(timestamp.trim()) ? timestamp.match(/(?<=^in).+/)[0] : timestamp)) /
 							1000
 				  )
 				: null;
