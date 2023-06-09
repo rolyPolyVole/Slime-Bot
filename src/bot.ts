@@ -29,6 +29,8 @@ client.modals = new Collection();
 
 client.handleComponents().catch(console.error);
 
+client.handleFonts().catch(console.error);
+
 await client.login(discordBotToken);
 
 client.onlineTimestamp = Date.now();
