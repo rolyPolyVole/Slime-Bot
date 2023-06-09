@@ -8,7 +8,7 @@ The bot's main purpose is to provide key functionality and useful features for t
 - [ ] Advanced (self-generating) settings menu (0% complete)
 - [ ] Advanced embed builder (0% complete)
 - [ ] Fun commands (0% complete)
-- [ ] Utility commands (0% complete)
+- [ ] Utility commands (10% complete)
 - [ ] YouTube upload tracker (50% complete)
   - [x] YouTube upload tracker & poster (100% complete) => `Profile picture fetcher from channel ID.`
   - [ ] YouTube upload tracker settings (0% complete) => `YouTube channel link & Discord channel link or ID input => +(YouTube channel ID & latest video ID)`
