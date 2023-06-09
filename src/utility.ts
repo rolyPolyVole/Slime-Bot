@@ -512,7 +512,7 @@ console.log = (...data) => {
 export const createSuccessMessage = (message: string): {embeds: [APIEmbed]} => ({
 	embeds: [
 		{
-			description: `${Emojis.Success} ${message}`,
+			description: `<:_:${Emojis.Success}> ${message}`,
 			color: Colours.Transparent
 		}
 	]
@@ -526,7 +526,7 @@ export const createSuccessMessage = (message: string): {embeds: [APIEmbed]} => (
 export const createErrorMessage = (message: string): {embeds: [APIEmbed]} => ({
 	embeds: [
 		{
-			description: `${Emojis.Error} ${message}`,
+			description: `<:_:${Emojis.Error}> ${message}`,
 			color: Colours.Transparent
 		}
 	]
@@ -639,6 +639,16 @@ export const checkPermissions = async (
 	return {value: true};
 };
 
+/**
+ * Returns the appropriate ending to a word that is either plural or singular.
+ * @param {number} number The string to convert.
+ * @returns {"s"|""} The appropriate ending to the provided string.
+ * @example
+ * `You have ${count} embed${addSuffix(input)}.`;
+ */
+export const addSuffix = (number: number): "s" | "" => (Math.abs(number) === 1 ? "" : "s");
+
+console.log(addSuffix(1));
 // ! Classes
 
 /**
