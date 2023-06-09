@@ -1,10 +1,18 @@
-import {APIEmbed, GuildEmoji, TextChannel} from "discord.js";
+import {APIEmbed, APIEmbedField, Guild, GuildEmoji, TextChannel} from "discord.js";
 import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 import {Event} from "types";
-import {Colours, URLRegExp, DisplayAvatarURLOptions, isImageLink} from "../../../utility.js";
+import {
+	Colours,
+	URLRegExp,
+	DisplayAvatarURLOptions,
+	isImageLink,
+	createErrorMessage,
+	addSuffix,
+	PollMessageBuilder
+} from "../../../utility.js";
 
 export const messageReactionAdd: Event<"messageReactionAdd"> = {
-	async execute(client, reaction) {
+	async execute(client, reaction, user) {
 		const {message} = reaction;
 		const {guild} = message;
 
@@ -140,6 +148,73 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 						}
 					}
 				}
+			}
+
+			const messageEmbed = reaction.message.embeds?.[0]?.data;
+
+			const member = await (reaction.message.guild as Guild).members.fetch(user.id);
+
+			const emojisList = (messageEmbed.description as string).match(
+				/^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|1️⃣|2️⃣|3️⃣|4️⃣|5️⃣|6️⃣|7️⃣|8️⃣|9️⃣|🔟)/gm
+			) as RegExpMatchArray;
+
+			const userReactions = reaction.message.reactions.cache.filter(
+				(reactionData) =>
+					reactionData.users.cache.has(member.id) && emojisList?.includes(reactionData.emoji.name as string)
+			);
+
+			if (messageEmbed?.author?.name === `${client.user?.username} Poll - Ended`) {
+				for (const messageReaction of userReactions.values()) {
+					if (messageReaction.emoji.name === reaction.emoji.name) await messageReaction.users.remove(member.id);
+				}
+
+				return member.send(createErrorMessage("Sorry, this poll has ended."));
+			}
+
+			if (
+				messageEmbed.description &&
+				messageEmbed?.author?.name === `${client.user?.username} Poll` &&
+				reaction.me &&
+				[...reaction.users.cache.values()].map((reactionUser) => reactionUser.id).length !== 1 &&
+				new RegExp(`^${reaction.emoji.name}.+`, "gm").test(messageEmbed.description)
+			) {
+				const requiredRole = (
+					/(`None`|(?<=<@&)\d+(?=>))/.exec((messageEmbed.fields as APIEmbedField[])[1].value) as RegExpMatchArray
+				)[0];
+
+				if (requiredRole !== "`None`" && !member.roles.cache.has(requiredRole)) {
+					for (const messageReaction of userReactions.values()) {
+						await messageReaction.users.remove(member.id);
+					}
+
+					const role = (reaction.message.guild as Guild).roles.cache.get(requiredRole);
+
+					return member.send(createErrorMessage(`You must have the <@&${role?.id}> role to participate in this poll!`));
+				}
+
+				const memberReactions = [...reaction.message.reactions.cache.values()].filter(
+					(messageReaction) =>
+						emojisList.includes(messageReaction.emoji.name as string) && messageReaction.users.cache.has(member.id)
+				).length;
+
+				const maxOptions =
+					parseInt(
+						(/(`Unlimited`|\d+)/.exec((messageEmbed.fields as APIEmbedField[])[1].value) as RegExpMatchArray)[0]
+					) || 10;
+
+				if (memberReactions > maxOptions) {
+					for (const userReaction of userReactions.values()) {
+						await userReaction.users.remove(member.id);
+					}
+
+					return member.send(
+						createErrorMessage(
+							`You may not choose more than **${maxOptions}** option${addSuffix(maxOptions)} for this poll!`
+						)
+					);
+				}
+
+				await reaction.message.edit(await new PollMessageBuilder().create(reaction, client));
 			}
 		}
 	}
