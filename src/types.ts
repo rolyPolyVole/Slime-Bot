@@ -31,6 +31,8 @@ export type BotClient = Client & {
 	handleEvents(): Promise<void>;
 	handleCommands(): Promise<void>;
 	handleComponents(): Promise<void>;
+	handleFonts(): Promise<void>;
+	checkTemporaryData(): Promise<void>;
 	checkUploads(): Promise<void>;
 	onlineTimestamp: number;
 };
