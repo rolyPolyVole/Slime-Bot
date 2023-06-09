@@ -9,6 +9,7 @@ import {
 	MessageContextMenuCommandInteraction,
 	ModalSubmitInteraction,
 	SlashCommandBuilder,
+	SlashCommandSubcommandsOnlyBuilder,
 	StringSelectMenuInteraction,
 	UserContextMenuCommandInteraction
 } from "discord.js";
@@ -20,8 +21,9 @@ export type BotClient = Client & {
 	commands: Collection<string, AnyCommand>;
 	commandArray: (
 		| SlashCommandBuilder
-		| Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">
 		| ContextMenuCommandBuilder
+		| SlashCommandSubcommandsOnlyBuilder
+		| Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">
 	)[];
 	buttons: Collection<string, Button>;
 	selectMenus: Collection<string, SelectMenu>;
@@ -37,7 +39,10 @@ export type BotClient = Client & {
  * A type for  handling Discord commands.
  */
 export type Command = {
-	data: SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
+	data:
+		| SlashCommandBuilder
+		| SlashCommandSubcommandsOnlyBuilder
+		| Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
 	description?: string;
 	usage: string[];
 	examples?: string[];
@@ -49,7 +54,10 @@ export type Command = {
  * - Note that examples are required for this command type.
  */
 export type AutoCompleteCommand = {
-	data: SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
+	data:
+		| SlashCommandBuilder
+		| SlashCommandSubcommandsOnlyBuilder
+		| Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
 	description?: string;
 	usage: string[];
 	examples: string[];
