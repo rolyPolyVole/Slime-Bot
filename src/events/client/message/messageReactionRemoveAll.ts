@@ -3,7 +3,7 @@ import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 import {Event} from "types";
 
 export const messageReactionRemoveAll: Event<"messageReactionRemoveAll"> = {
-	async execute(_client, message, _reactions) {
+	async execute(client, message, reactions) {
 		const {guild} = message;
 
 		if (guild) {
@@ -37,5 +37,9 @@ export const messageReactionRemoveAll: Event<"messageReactionRemoveAll"> = {
 				}
 			}
 		}
+
+		// I don't know why, but TypeScript thinks that type 'never' is needed here.
+		// It just doesn't work otherwise...
+		for (const reaction of reactions) client.emit("messageReactionRemove" as never, reaction[1]);
 	}
 };
