@@ -12,6 +12,7 @@ import {
 	InteractionType,
 	Message,
 	MessageReaction,
+	PartialMessageReaction,
 	PermissionsBitField,
 	TextChannel,
 	User,
@@ -64,13 +65,19 @@ export const loopFolders = async (
 		const categoryFiles = readdirSync(`./dist/${path}/${category}`).filter((file) => !file.endsWith(".js.map"));
 
 		for (const file of categoryFiles) {
-			const fileExports = await import(`../dist/${path}/${category}/${file}`);
+			let fileExports;
+
+			try {
+				fileExports = await import(`../dist/${path}/${category}/${file}`);
+			} catch (error) {
+				(!(error instanceof Error) || !error.message.startsWith("Unknown file extension ")) && console.error(error);
+			}
 
 			// If there is only one export, as is in the case of files such as command, button, modal and select menu exports, then only that export is passed into the function.
 			// If it weren't for this check, then an object with only one property would be passed, making the code a bit more cluttered.
 			// Implementing this is easier than using "export default" everywhere as that can get a bit cluttered when using type declarations.
 
-			const exportKeys = Object.keys(fileExports);
+			const exportKeys = Object.keys(fileExports ?? {});
 
 			await callback(
 				exportKeys.length === 1 ? fileExports[exportKeys[0]] : fileExports,
@@ -667,8 +674,11 @@ export class PollMessageBuilder {
 		this.embeds = [];
 		this.files = [];
 	}
-	async create(data: {message: Message} | MessageReaction | ChatInputCommandInteraction, client: BotClient) {
-		const embed = !(data instanceof ChatInputCommandInteraction) ? data.message?.embeds?.[0]?.data : undefined;
+	async create(
+		data: ChatInputCommandInteraction | {message: Message} | MessageReaction | PartialMessageReaction,
+		client: BotClient
+	) {
+		const embed = !(data instanceof ChatInputCommandInteraction) ? data.message.embeds?.[0]?.data : undefined;
 		const role = data instanceof ChatInputCommandInteraction ? data.options.getRole("required-role") : null;
 		const timestamp = data instanceof ChatInputCommandInteraction ? data.options.getString("duration") : null;
 		const ping = data instanceof ChatInputCommandInteraction ? data.options.getRole("ping") : null;
