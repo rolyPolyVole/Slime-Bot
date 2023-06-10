@@ -1,9 +1,9 @@
-import {DMChannel, GuildChannel} from "discord.js";
+import {GuildChannel} from "discord.js";
 import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 import {Event} from "types";
 
-export const channelDelete: Event<"channelUpdate"> = {
-	async execute(_client, channel: DMChannel | GuildChannel) {
+export const channelDelete: Event<"channelDelete"> = {
+	async execute(_client, channel) {
 		if (channel instanceof GuildChannel) {
 			const {guild} = channel;
 
