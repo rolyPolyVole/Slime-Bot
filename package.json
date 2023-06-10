@@ -43,8 +43,10 @@
 		"format": "npx prettier --write .",
 		"prettier:check": "npx prettier --check .",
 		"format:check": "npx prettier --check .",
-		"check": "npx prettier --check .",
-		"check-eslint-config": "npx eslint-config-prettier ."
+		"check-prettier": "npx prettier --check .",
+		"eslint": "npx eslint --fix src/*",
+		"eslint:check": "npx eslint src/*",
+		"check-eslint": "npx eslint-config-prettier ."
 	},
 	"devDependencies": {
 		"@types/node": "^20.2.6",
