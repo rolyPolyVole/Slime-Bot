@@ -11,18 +11,37 @@
 		"sourceType": "module"
 	},
 	"plugins": ["@typescript-eslint"],
+	"globals": {"process": "readonly"},
+	"overrides": [
+		{
+			"files": ["*.ts"],
+			"rules": {
+				"no-extra-parens": "off",
+				"no-use-before-define": "off"
+			}
+		},
+		{
+			"files": ["types.ts"],
+			"rules": {
+				"no-unused-vars": "off"
+			}
+		}
+	],
 	"rules": {
 		"linebreak-style": ["error", "unix"],
+		"no-extra-parens": "error",
 		"quotes": ["error", "double"],
 		"semi": ["error", "always"],
 		"no-div-regex": "error",
 		"for-direction": "error",
+		"camelcase": ["error", {"allow": [""]}],
 		"no-const-assign": "error",
 		"no-case-declarations": "off",
 		"no-dupe-args": "error",
 		"no-dupe-class-members": "error",
 		"no-dupe-else-if": "error",
 		"no-dupe-keys": "error",
+		"no-control-regex": "off",
 		"no-duplicate-case": "error",
 		"no-duplicate-imports": "error",
 		"no-func-assign": "error",
@@ -38,7 +57,6 @@
 		"no-unused-expressions": "error",
 		"no-unused-labels": "error",
 		"use-isnan": "error",
-		"camelcase": "error",
 		"eqeqeq": "error",
 		"no-eval": "error",
 		"no-extend-native": "error",
@@ -137,7 +155,6 @@
 		"object-shorthand": "error",
 		"prefer-numeric-literals": "error",
 		"sort-imports": "error",
-		"sort-keys": "error",
 		"sort-vars": "error",
 		"vars-on-top": "error",
 		"array-bracket-spacing": "error",
@@ -146,12 +163,9 @@
 		"computed-property-spacing": "error",
 		"eol-last": "error",
 		"generator-star-spacing": "error",
-		"implicit-arrow-linebreak": "error",
 		"key-spacing": "error",
 		"lines-between-class-members": "error",
 		"new-parens": "error",
-		"newline-per-chained-call": "error",
-		"no-extra-parens": "error",
 		"object-curly-newline": "error",
 		"operator-linebreak": "error",
 		"padding-line-between-statements": "error",
@@ -159,6 +173,7 @@
 		"semi-style": "error",
 		"switch-colon-spacing": "error",
 		"template-curly-spacing": "error",
+		"curly": ["error", "multi-line"],
 		"template-tag-spacing": "error",
 		"wrap-iife": "error",
 		"yield-star-spacing": "error",
@@ -167,17 +182,16 @@
 		"comma-dangle": ["error", "always-multiline"],
 		"comma-spacing": "error",
 		"comma-style": "error",
-		"curly": ["error", "multi-line", "consistent"],
 		"dot-location": ["error", "property"],
 		"handle-callback-err": "off",
-		"indent": ["error", "tab"],
 		"keyword-spacing": "error",
 		"max-nested-callbacks": ["error", {"max": 4}],
 		"max-statements-per-line": ["error", {"max": 2}],
 		"no-console": "off",
 		"no-empty-function": "error",
 		"no-floating-decimal": "error",
-		"no-inline-comments": "error",
+		// Inline comments can't be longer than 80 characters.
+		"no-inline-comments": ["error", {"ignorePattern": "^[\\s\\S]{0,60}$"}],
 		"no-lonely-if": "error",
 		"no-multi-spaces": "error",
 		"no-multiple-empty-lines": ["error", {"max": 2, "maxEOF": 1, "maxBOF": 0}],
