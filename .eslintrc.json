@@ -1,20 +1,20 @@
 {
 	"env": {
 		"browser": true,
-		"commonjs": true,
 		"es2021": true
 	},
-	"extends": "eslint:recommended",
-	"overrides": [],
+	// Make sure "prettier" is last in the list.
+	"extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "eslint:recommended", "prettier"],
+	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
-		"ecmaVersion": "latest"
+		"ecmaVersion": "latest",
+		"sourceType": "module"
 	},
-	"globals": {
-		"process": "readonly"
-	},
-	"ignorePatterns": ["node_modules", "dist", ".git"],
+	"plugins": ["@typescript-eslint"],
 	"rules": {
-		"linebreak-style": ["error", "windows"],
+		"linebreak-style": ["error", "unix"],
+		"quotes": ["error", "double"],
+		"semi": ["error", "always"],
 		"no-div-regex": "error",
 		"for-direction": "error",
 		"no-const-assign": "error",
@@ -154,7 +154,6 @@
 		"no-extra-parens": "error",
 		"object-curly-newline": "error",
 		"operator-linebreak": "error",
-		"padded-blocks": "error",
 		"padding-line-between-statements": "error",
 		"semi-spacing": "error",
 		"semi-style": "error",
@@ -164,7 +163,7 @@
 		"wrap-iife": "error",
 		"yield-star-spacing": "error",
 		"arrow-spacing": ["warn", {"before": true, "after": true}],
-		"brace-style": ["error", "stroustrup", {"allowSingleLine": true}],
+		"brace-style": ["error", "1tbs", {"allowSingleLine": true}],
 		"comma-dangle": ["error", "always-multiline"],
 		"comma-spacing": "error",
 		"comma-style": "error",
@@ -185,10 +184,7 @@
 		"no-shadow": ["error", {"allow": ["err", "resolve", "reject"]}],
 		"no-trailing-spaces": ["error"],
 		"no-var": "error",
-		"object-curly-spacing": ["error", "always"],
 		"prefer-const": "error",
-		"quotes": ["error", "single"],
-		"semi": ["error", "always"],
 		"space-before-blocks": "error",
 		"space-before-function-paren": [
 			"error",
