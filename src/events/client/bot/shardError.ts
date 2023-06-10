@@ -8,5 +8,5 @@ export const debug: Event<"shardError"> = {
 		console.log(redBright(`\n${bold("[Shard Error]")} ${error.name}`));
 		console.error(error);
 		console.log();
-	}
+	},
 };

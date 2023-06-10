@@ -8,5 +8,5 @@ export const debug: Event<"warn"> = {
 		console.log(yellowBright(`\n${bold("[Warning]")}`));
 		console.warn(message);
 		console.log();
-	}
+	},
 };

@@ -5,7 +5,7 @@ const temporaryDataSchema = new Schema({
 	type: String,
 	data: Object,
 	creationDate: Number,
-	lifeSpan: Number
+	lifeSpan: Number,
 });
 
 export default model("Temporary Data", temporaryDataSchema, "Temporary Data");

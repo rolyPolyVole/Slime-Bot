@@ -1,7 +1,7 @@
 import {APIEmbed, APIEmbedField, Guild, TextChannel} from "discord.js";
-import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 import {Event} from "types";
 import {PollMessageBuilder} from "../../../utility.js";
+import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 
 export const messageReactionRemove: Event<"messageReactionRemove"> = {
 	async execute(client, reaction, user) {
@@ -33,7 +33,7 @@ export const messageReactionRemove: Event<"messageReactionRemove"> = {
 						(starredMessage.embeds[0].data as APIEmbed).title = title?.replace(/> \d+/, `> ${reaction.count}`);
 
 						await starredMessage.edit({
-							embeds: starredMessage.embeds
+							embeds: starredMessage.embeds,
 						});
 					}
 				}
@@ -44,7 +44,7 @@ export const messageReactionRemove: Event<"messageReactionRemove"> = {
 			const member = await (reaction.message.guild as Guild).members.fetch(user.id);
 
 			const emojis = (embed?.description ?? "").match(
-				/^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|1️⃣|2️⃣|3️⃣|4️⃣|5️⃣|6️⃣|7️⃣|8️⃣|9️⃣|🔟)/gm
+				/^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|1️⃣|2️⃣|3️⃣|4️⃣|5️⃣|6️⃣|7️⃣|8️⃣|9️⃣|🔟)/gm,
 			) as RegExpMatchArray;
 
 			if (embed?.author?.name === `${client.user?.username ?? ""} Poll` && reaction.me) {
@@ -55,7 +55,7 @@ export const messageReactionRemove: Event<"messageReactionRemove"> = {
 				if (requiredRole === "`None`" || member?.roles?.cache?.has(requiredRole)) {
 					const memberReactions = [...reaction.message.reactions.cache.values()].filter(
 						(messageReaction) =>
-							emojis.includes(messageReaction.emoji.name as string) && messageReaction.users.cache.has(member?.id)
+							emojis.includes(messageReaction.emoji.name as string) && messageReaction.users.cache.has(member?.id),
 					).length;
 
 					const maxOptions =
@@ -68,5 +68,5 @@ export const messageReactionRemove: Event<"messageReactionRemove"> = {
 				}
 			}
 		}
-	}
+	},
 };

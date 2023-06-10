@@ -11,7 +11,7 @@ import {
 	SlashCommandBuilder,
 	SlashCommandSubcommandsOnlyBuilder,
 	StringSelectMenuInteraction,
-	UserContextMenuCommandInteraction
+	UserContextMenuCommandInteraction,
 } from "discord.js";
 
 /**
@@ -90,7 +90,7 @@ export type AnyContextMenuCommand = {
 	usage: string[];
 	execute(
 		interaction: MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction,
-		client: BotClient
+		client: BotClient,
 	): Promise<unknown>;
 };
 

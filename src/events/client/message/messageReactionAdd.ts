@@ -1,15 +1,15 @@
 import {APIEmbed, APIEmbedField, Guild, GuildEmoji, TextChannel} from "discord.js";
-import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
-import {Event} from "types";
 import {
 	Colours,
-	URLRegExp,
 	DisplayAvatarURLOptions,
-	isImageLink,
-	createErrorMessage,
+	PollMessageBuilder,
+	URLRegExp,
 	addSuffix,
-	PollMessageBuilder
+	createErrorMessage,
+	isImageLink,
 } from "../../../utility.js";
+import {Event} from "types";
+import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 
 export const messageReactionAdd: Event<"messageReactionAdd"> = {
 	async execute(client, reaction, user) {
@@ -24,7 +24,8 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 
 				for (const channel of guildSettings.starboard.channels) {
 					if (
-						(emoji.id ?? emoji.name) === (channel.emojiID ?? "⭐") && // The emoji is the one of the starboard channel. (By default (AKA channel.emojiID is undefined), the starboard emoji is a star emoji ⭐)
+						// The emoji is the one of the starboard channel. (By default (AKA channel.emojiID is undefined), the starboard emoji is a star emoji ⭐)
+						(emoji.id ?? emoji.name) === (channel.emojiID ?? "⭐") &&
 						channel.channelID !== message.channelId // The message is not in the starboard channel
 					) {
 						// When the owner or an admin adds a channel, the bot would have checked that the channel is not of type CategoryChannel or type ForumChannel.
@@ -48,7 +49,7 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 							(starredMessage.embeds[0].data as APIEmbed).title = title?.replace(/> \d+/, `> ${reaction.count}`);
 
 							await starredMessage.edit({
-								embeds: starredMessage.embeds
+								embeds: starredMessage.embeds,
 							});
 						} else if (
 							// Message hasn't been sent to the starboard channel => needs to be sent.
@@ -77,13 +78,13 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 											name: author?.username ?? "👤 Unknown",
 											icon_url:
 												author?.avatarURL() ??
-												"https://cdn.discordapp.com/attachments/1020058739526619186/1115270152544596018/800px-Blue_question_mark_icon.png"
+												"https://cdn.discordapp.com/attachments/1020058739526619186/1115270152544596018/800px-Blue_question_mark_icon.png",
 										},
 										footer: {
 											text: `${client.user?.username as string} - Message ID • Time sent at - ${message.id}`,
-											icon_url: client.user?.displayAvatarURL(DisplayAvatarURLOptions)
+											icon_url: client.user?.displayAvatarURL(DisplayAvatarURLOptions),
 										},
-										timestamp: new Date(createdTimestamp).toISOString()
+										timestamp: new Date(createdTimestamp).toISOString(),
 									},
 									...embeds
 										.map((embed) => embed.data)
@@ -124,7 +125,7 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 												newEmbed.footer = {
 													text: `${newEmbed.provider?.name}`,
 													icon_url:
-														"https://cdn.discordapp.com/attachments/1020058739526619186/1115247093301391360/video-play-icon.png"
+														"https://cdn.discordapp.com/attachments/1020058739526619186/1115247093301391360/video-play-icon.png",
 												};
 
 												return newEmbed;
@@ -133,11 +134,11 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 											return embed;
 										})
 										// Make sure that the limit of embeds per message is not exceeded.
-										.slice(0, 24)
+										.slice(0, 24),
 								],
 								// Note: The following code matches links in the content of the message and then filters out any non-image links as they behave in a bit of a strange way.
 								// This doesn't apply to message's *files* as those behave the same way as in the original message.
-								files: [...Array.from(attachments.values()).map((attachment) => attachment.url), ...messageImageURLs]
+								files: [...Array.from(attachments.values()).map((attachment) => attachment.url), ...messageImageURLs],
 							});
 
 							channel.starredMessageIDs ??= {};
@@ -155,12 +156,12 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 			const member = await (reaction.message.guild as Guild).members.fetch(user.id);
 
 			const emojisList = (messageEmbed.description as string).match(
-				/^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|1️⃣|2️⃣|3️⃣|4️⃣|5️⃣|6️⃣|7️⃣|8️⃣|9️⃣|🔟)/gm
+				/^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|1️⃣|2️⃣|3️⃣|4️⃣|5️⃣|6️⃣|7️⃣|8️⃣|9️⃣|🔟)/gm,
 			) as RegExpMatchArray;
 
 			const userReactions = reaction.message.reactions.cache.filter(
 				(reactionData) =>
-					reactionData.users.cache.has(member.id) && emojisList?.includes(reactionData.emoji.name as string)
+					reactionData.users.cache.has(member.id) && emojisList?.includes(reactionData.emoji.name as string),
 			);
 
 			if (messageEmbed?.author?.name === `${client.user?.username} Poll - Ended`) {
@@ -194,12 +195,12 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 
 				const memberReactions = [...reaction.message.reactions.cache.values()].filter(
 					(messageReaction) =>
-						emojisList.includes(messageReaction.emoji.name as string) && messageReaction.users.cache.has(member.id)
+						emojisList.includes(messageReaction.emoji.name as string) && messageReaction.users.cache.has(member.id),
 				).length;
 
 				const maxOptions =
 					parseInt(
-						(/(`Unlimited`|\d+)/.exec((messageEmbed.fields as APIEmbedField[])[1].value) as RegExpMatchArray)[0]
+						(/(`Unlimited`|\d+)/.exec((messageEmbed.fields as APIEmbedField[])[1].value) as RegExpMatchArray)[0],
 					) || 10;
 
 				if (memberReactions > maxOptions) {
@@ -209,13 +210,13 @@ export const messageReactionAdd: Event<"messageReactionAdd"> = {
 
 					return member.send(
 						createErrorMessage(
-							`You may not choose more than **${maxOptions}** option${addSuffix(maxOptions)} for this poll!`
-						)
+							`You may not choose more than **${maxOptions}** option${addSuffix(maxOptions)} for this poll!`,
+						),
 					);
 				}
 
 				await reaction.message.edit(await new PollMessageBuilder().create(reaction, client));
 			}
 		}
-	}
+	},
 };

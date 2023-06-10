@@ -1,15 +1,15 @@
-import {SlashCommandBuilder, ChannelType, TextChannel, User, Role, APIRole} from "discord.js";
-import {evaluate} from "mathjs";
-import mongoose from "mongoose";
+import {APIRole, ChannelType, Role, SlashCommandBuilder, TextChannel, User} from "discord.js";
 import {
-	createSuccessMessage,
-	createErrorMessage,
 	PollMessageBuilder,
 	checkPermissions,
-	resolveDuration
+	createErrorMessage,
+	createSuccessMessage,
+	resolveDuration,
 } from "../../utility.js";
-import temporaryDataSchema from "../../schemas/temporaryDataSchema.js";
 import {Command} from "../../types";
+import {evaluate} from "mathjs";
+import mongoose from "mongoose";
+import temporaryDataSchema from "../../schemas/temporaryDataSchema.js";
 
 export const poll: Command = {
 	data: new SlashCommandBuilder()
@@ -20,19 +20,19 @@ export const poll: Command = {
 				.setName("create")
 				.setDescription("📝 Create a poll.")
 				.addStringOption((option) =>
-					option.setName("message").setDescription("💬 What do you want to be voted on?").setRequired(true)
+					option.setName("message").setDescription("💬 What do you want to be voted on?").setRequired(true),
 				)
 				.addStringOption((option) => option.setName("description").setDescription("📜 The description of the poll."))
 				.addStringOption((option) =>
 					option
 						.setName("colour")
-						.setDescription("🌈 The colour of the poll embed. Accepts colour codes and the names of colours.")
+						.setDescription("🌈 The colour of the poll embed. Accepts colour codes and the names of colours."),
 				)
 				.addChannelOption((option) =>
 					option
 						.setName("channel")
 						.setDescription("💬 The channel that the poll should be sent in")
-						.addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
+						.addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement),
 				)
 				.addStringOption((option) =>
 					option
@@ -54,31 +54,31 @@ export const poll: Command = {
 							{name: "12", value: "12"},
 							{name: "13", value: "13"},
 							{name: "14", value: "14"},
-							{name: "15", value: "15"}
-						)
+							{name: "15", value: "15"},
+						),
 				)
 				.addStringOption((option) =>
 					option.setName("duration").setDescription(
 						// eslint-disable-next-line quotes
-						'⏳ The poll duration. E.g. "5m", "5 minutes", "3 hours", "5 days", "1 week".'
-					)
+						'⏳ The poll duration. E.g. "5m", "5 minutes", "3 hours", "5 days", "1 week".',
+					),
 				)
 				.addBooleanOption((option) =>
-					option.setName("anonymous").setDescription("👤 Whether the poll should be sent anonymously.")
+					option.setName("anonymous").setDescription("👤 Whether the poll should be sent anonymously."),
 				)
 				.addRoleOption((option) =>
-					option.setName("required-role").setDescription("👤 The role required to vote on the poll.")
+					option.setName("required-role").setDescription("👤 The role required to vote on the poll."),
 				)
 				.addRoleOption((option) => option.setName("ping-role").setDescription("👤 The role that the bot should ping."))
 				.addStringOption((option) =>
 					option
 						.setName("thread-name")
-						.setDescription("💬 If a name is provided, a thread will be created with that name.")
+						.setDescription("💬 If a name is provided, a thread will be created with that name."),
 				)
 				.addStringOption((option) =>
 					option
 						.setName("attachments")
-						.setDescription("🎨 Send an attachment. Send multiple by separating links with commas.")
+						.setDescription("🎨 Send an attachment. Send multiple by separating links with commas."),
 				)
 				.addStringOption((option) => option.setName("choice-1").setDescription("1️⃣ The first option."))
 				.addStringOption((option) => option.setName("choice-2").setDescription("2️⃣The second option."))
@@ -90,21 +90,22 @@ export const poll: Command = {
 				.addStringOption((option) => option.setName("choice-7").setDescription("7️⃣ The seventh option."))
 				.addStringOption((option) => option.setName("choice-8").setDescription("8️⃣ The eighth option."))
 				.addStringOption((option) => option.setName("choice-9").setDescription("9️⃣ The ninth option."))
-				.addStringOption((option) => option.setName("choice-10").setDescription("🔟 The tenth option."))
+				.addStringOption((option) => option.setName("choice-10").setDescription("🔟 The tenth option.")),
 		),
 	usage: [
-		"poll create message: poll question description: description of the poll question colour: the colour of the poll embed channel: channel to send the poll message to max-options: maximum number of options a user can select duration: the duration of time that server members will be able to vote on the poll anonymous: whether the poll should be sent anonymously required-role: which role should be required for people to vote on the poll ping-role: which role should the be pinged for the poll thread-name: if provided, will create a thread with that name attachments: any images/other file attachments that should be sent along with the poll ...choices: choices that server members can select - up to 10 allowed"
+		"poll create message: poll question description: description of the poll question colour: the colour of the poll embed channel: channel to send the poll message to max-options: maximum number of options a user can select duration: the duration of time that server members will be able to vote on the poll anonymous: whether the poll should be sent anonymously required-role: which role should be required for people to vote on the poll ping-role: which role should the be pinged for the poll thread-name: if provided, will create a thread with that name attachments: any images/other file attachments that should be sent along with the poll ...choices: choices that server members can select - up to 10 allowed",
 	],
 	examples: [
 		"poll create message: 🥣 Is Cereal a Soup? description: Top scientists have been consumed by this question for years. choice-1: Yes choice-2: No",
 		"poll create message: 🤖 Is Slime Bot the best bot? description: Truly an intriguing conundrum. choice-1: Yes",
-		"poll create message: 🐈🐕 Are you a cat or a dog person? description: Which animal do you prefer? choice-1: 🐱 Cat choice-2: 🐶 Dog"
+		"poll create message: 🐈🐕 Are you a cat or a dog person? description: Which animal do you prefer? choice-1: 🐱 Cat choice-2: 🐶 Dog",
 	],
 	async execute(interaction, client) {
 		const {options, guild, user} = interaction;
 
-		if (!interaction.channel || !guild)
+		if (!interaction.channel || !guild) {
 			return interaction.reply(createErrorMessage("This command can only be used in a guild!"));
+		}
 
 		if (options.getSubcommand() === "create") {
 			let duration: string | number | null = options.getString("duration");
@@ -124,7 +125,7 @@ export const poll: Command = {
 				[user],
 				channel,
 				guild,
-				user
+				user,
 			);
 
 			if (!permissions.value) {
@@ -136,7 +137,7 @@ export const poll: Command = {
 				[client.user as User],
 				channel,
 				guild,
-				user
+				user,
 			);
 
 			if (!botPermissions.value) {
@@ -144,7 +145,7 @@ export const poll: Command = {
 			}
 
 			await interaction.deferReply({
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			const pollMessage = await new PollMessageBuilder().create(interaction, client);
@@ -161,7 +162,7 @@ export const poll: Command = {
 					type: "poll",
 					data: {message: embedMessage.id, channel: channel.id},
 					creationDate: Date.now(),
-					lifeSpan: Math.round(parseInt(`${duration}`))
+					lifeSpan: Math.round(parseInt(`${duration}`)),
 				});
 
 				await temporary.save();
@@ -170,7 +171,7 @@ export const poll: Command = {
 			if (options.getString("thread-name")) {
 				const thread = await embedMessage.startThread({
 					name: `${options.getString("thread-name")}`,
-					autoArchiveDuration: 60
+					autoArchiveDuration: 60,
 				});
 
 				if (options.getRole("ping-role")) {
@@ -180,5 +181,5 @@ export const poll: Command = {
 
 			await interaction.editReply(createSuccessMessage(`Successfully created and sent the poll in <#${channel.id}>.`));
 		}
-	}
+	},
 };

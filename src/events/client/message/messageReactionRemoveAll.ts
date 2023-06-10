@@ -1,6 +1,6 @@
 import {APIEmbed, TextChannel} from "discord.js";
-import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 import {Event} from "types";
+import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 
 export const messageReactionRemoveAll: Event<"messageReactionRemoveAll"> = {
 	async execute(client, message, reactions) {
@@ -28,10 +28,10 @@ export const messageReactionRemoveAll: Event<"messageReactionRemoveAll"> = {
 
 						// Assertion necessary because the embed needs to be edited.
 						// Updating the reaction count.
-						(starredMessage.embeds[0].data as APIEmbed).title = title?.replace(/> \d+/, `> 0`);
+						(starredMessage.embeds[0].data as APIEmbed).title = title?.replace(/> \d+/, "> 0");
 
 						await starredMessage.edit({
-							embeds: starredMessage.embeds
+							embeds: starredMessage.embeds,
 						});
 					}
 				}
@@ -41,5 +41,5 @@ export const messageReactionRemoveAll: Event<"messageReactionRemoveAll"> = {
 		// I don't know why, but TypeScript thinks that type 'never' is needed here.
 		// It just doesn't work otherwise...
 		for (const reaction of reactions) client.emit("messageReactionRemove" as never, reaction[1]);
-	}
+	},
 };

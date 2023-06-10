@@ -9,27 +9,28 @@ const guildSettingsSchema = new Schema({
 				youtubeChannelProfilePictureURL: String,
 				latestVideoID: String,
 				discordChannelID: String,
-				pingRoleID: String
-			}
-		]
+				pingRoleID: String,
+			},
+		],
 	},
 	starboard: {
 		channels: [
 			{
 				channelID: String,
 				pingRoleID: String,
-				emojiID: String, // While the "emoji ID" technically isn't an ID in all cases, it's still more clear to call the variable 'emojiID' rather than 'emojiIDOrName', and simply calling it 'emoji' could cause some confusion.
+				emojiID: String,
+				// While the "emoji ID" technically isn't an ID in all cases, it's still more clear to call the variable 'emojiID' rather than 'emojiIDOrName', and simply calling it 'emoji' could cause some confusion.
 				emojiCount: Number,
 				starredMessageIDs: {
 					type: Object,
-					of: String
-				}
-			}
-		]
+					of: String,
+				},
+			},
+		],
 	},
 	counting: {
-		channels: [{channelID: String, count: Number, latestCountAuthorID: String}]
-	}
+		channels: [{channelID: String, count: Number, latestCountAuthorID: String}],
+	},
 });
 
 export default model("Guild Settings", guildSettingsSchema, "Guild Settings");

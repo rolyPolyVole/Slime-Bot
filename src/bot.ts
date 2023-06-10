@@ -11,7 +11,7 @@ const {discordBotToken, mongoDatabaseToken} = process.env;
 
 const client = new Client({
 	intents: Object.keys(GatewayIntentBits) as unknown as Partials[],
-	partials: Object.keys(Partials) as unknown as Partials[]
+	partials: Object.keys(Partials) as unknown as Partials[],
 }) as BotClient;
 
 await loopFolders("functions", (callback) => (callback as Function)(client));

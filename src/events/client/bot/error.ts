@@ -8,5 +8,5 @@ export const debug: Event<"error"> = {
 		console.log(redBright(`\n${bold("[Error]")} ${error.name}`));
 		console.error(error);
 		console.log();
-	}
+	},
 };

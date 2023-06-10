@@ -1,6 +1,6 @@
+import {BotClient, Event, MongoEvent, ProcessEvent} from "types";
 import {ClientEvents} from "discord.js";
 import {loopFolders} from "../../utility.js";
-import {BotClient, Event, MongoEvent, ProcessEvent} from "types";
 import mongoose from "mongoose";
 
 const {connection} = mongoose;

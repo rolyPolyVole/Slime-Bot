@@ -1,7 +1,7 @@
-import {invertObject} from "../../../utility.js";
-import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
-import {Event} from "types";
 import {evaluate, isComplex, isResultSet} from "mathjs";
+import {Event} from "types";
+import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
+import {invertObject} from "../../../utility.js";
 
 export const messageDelete: Event<"messageDelete"> = {
 	async execute(_client, message) {
@@ -56,13 +56,13 @@ export const messageDelete: Event<"messageDelete"> = {
 								content: `<@${message.author?.id}> » ${expressionValue}`,
 								allowedMentions: {
 									parse: [],
-									users: []
-								}
+									users: [],
+								},
 							});
 						}
 					}
 				}
 			}
 		}
-	}
+	},
 };

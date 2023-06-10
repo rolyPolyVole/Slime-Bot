@@ -1,13 +1,13 @@
-import {SlashCommandBuilder} from "discord.js";
-import {Command} from "types";
 import {Colours} from "../../utility.js";
+import {Command} from "types";
+import {SlashCommandBuilder} from "discord.js";
 
 export const ping: Command = {
 	data: new SlashCommandBuilder().setName("ping").setDescription("🏓 Pong!"),
 	usage: ["ping"],
 	async execute(interaction, client) {
 		const message = await interaction.deferReply({
-			fetchReply: true
+			fetchReply: true,
 		});
 
 		await interaction.editReply({
@@ -17,9 +17,9 @@ export const ping: Command = {
 					color: Colours.Transparent,
 					description: `🤖 **API Latency**: \`${client.ws.ping}\`\n\n👤 **Client Ping**: \`${
 						message.createdTimestamp - interaction.createdTimestamp
-					}\``
-				}
-			]
+					}\``,
+				},
+			],
 		});
-	}
+	},
 };

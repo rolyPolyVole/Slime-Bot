@@ -1,6 +1,6 @@
 import {BotClient} from "types";
-import {loopFolders} from "../../utility.js";
 import chalk from "chalk";
+import {loopFolders} from "../../utility.js";
 import {registerFont} from "canvas";
 
 const {bold, redBright} = chalk;

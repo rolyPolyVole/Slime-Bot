@@ -1,5 +1,5 @@
-import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 import {Event} from "types";
+import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 
 export const emojiDelete: Event<"emojiDelete"> = {
 	async execute(_client, emoji) {
@@ -14,5 +14,5 @@ export const emojiDelete: Event<"emojiDelete"> = {
 
 			await guildSettings.save();
 		}
-	}
+	},
 };

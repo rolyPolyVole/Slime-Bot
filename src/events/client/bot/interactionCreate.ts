@@ -1,5 +1,5 @@
-import {AutocompleteInteraction, InteractionType} from "discord.js";
 import {AnyContextMenuCommand, AutoCompleteCommand, Command, Event} from "types";
+import {AutocompleteInteraction, InteractionType} from "discord.js";
 import {Emojis, handleError} from "../../../utility.js";
 import chalk from "chalk";
 
@@ -18,11 +18,11 @@ export const interactionCreate: Event<"interactionCreate"> = {
 						`(${
 							// This is needed or else TypeScript will complain.
 							interaction.type === 2 || interaction.isAutocomplete() ? interaction.commandName : interaction.customId
-						})`
+						})`,
 					)} in guild ${bold(interaction.guild?.name)} from user ${bold(interaction.user.username)} (ID: ${
 						interaction.user.id
-					}) ()`
-				).replace(/\s{2,}/g, " ")
+					}) ()`,
+				).replace(/\s{2,}/g, " "),
 			);
 		}
 
@@ -126,29 +126,31 @@ export const interactionCreate: Event<"interactionCreate"> = {
 						description: `Sorry, <@${client.user?.id}> is currently in maintenance mode!\n\n<@${
 							client.user?.id
 						}> has been in maintenance since <t:${Math.round(client.onlineTimestamp / 1000)}:R>.`,
-						color: 0xff0000
-					}
-				]
+						color: 0xff0000,
+					},
+				],
 			};
 
-			if (!(interaction instanceof AutocompleteInteraction))
+			if (!(interaction instanceof AutocompleteInteraction)) {
 				try {
 					await interaction.reply(maintenanceReply);
 				} catch (error) {
 					await interaction.editReply(maintenanceReply).catch(console.error);
 				}
+			}
 		}
 
-		if (process.env.debug)
+		if (process.env.debug) {
 			console.log(
 				yellow(
 					`${bold("[Debug]")} Took ${bold(
-						`${Date.now() - time} milliseconds (${new Intl.NumberFormat().format((Date.now() - time) / 1000)} seconds)`
+						`${Date.now() - time} milliseconds (${new Intl.NumberFormat().format((Date.now() - time) / 1000)} seconds)`,
 					)} to execute interaction ${bold(
 						// This is needed or else TypeScript will complain.
-						interaction.type === 2 || interaction.isAutocomplete() ? interaction.commandName : interaction.customId
-					)}.\n`
-				)
+						interaction.type === 2 || interaction.isAutocomplete() ? interaction.commandName : interaction.customId,
+					)}.\n`,
+				),
 			);
-	}
+		}
+	},
 };

@@ -1,6 +1,6 @@
-import chalk from "chalk";
-import {MongooseError} from "mongoose";
 import {MongoEvent} from "types";
+import {MongooseError} from "mongoose";
+import chalk from "chalk";
 
 const {bold, redBright} = chalk;
 
@@ -9,5 +9,5 @@ export const err: MongoEvent = {
 		console.log(redBright(`\n${bold("[Database Status]")} ${error.name}`));
 		console.error(error);
 		console.log();
-	}
+	},
 };

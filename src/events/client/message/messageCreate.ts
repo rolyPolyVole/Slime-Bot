@@ -1,6 +1,6 @@
-import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
-import {Event} from "types";
 import {evaluate, isComplex, isResultSet} from "mathjs";
+import {Event} from "types";
+import guildSettingsSchema from "../../../schemas/guildSettingsSchema.js";
 
 export const messageCreate: Event<"messageCreate"> = {
 	async execute(_client, message) {
@@ -42,5 +42,5 @@ export const messageCreate: Event<"messageCreate"> = {
 				await guildSettings.save();
 			}
 		}
-	}
+	},
 };

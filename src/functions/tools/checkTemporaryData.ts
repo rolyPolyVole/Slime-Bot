@@ -1,7 +1,7 @@
 import {Message, TextChannel} from "discord.js";
+import {BotClient} from "../../types";
 import {PollMessageBuilder} from "../../utility.js";
 import temporaryDataSchema from "../../schemas/temporaryDataSchema.js";
-import {BotClient} from "../../types";
 
 export const checkTemporaryData = async (client: BotClient) => {
 	client.checkTemporaryData = async () => {
@@ -17,7 +17,7 @@ export const checkTemporaryData = async (client: BotClient) => {
 						await client.channels.fetch(temporary.data.channel).then((channel) =>
 							(channel as TextChannel)?.messages?.fetch(temporary.data.message).then(async (message: Message) => {
 								await message.edit(await new PollMessageBuilder().create({message}, client));
-							})
+							}),
 						);
 						break;
 				}

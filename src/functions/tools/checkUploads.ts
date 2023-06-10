@@ -1,8 +1,8 @@
-import guildSettingsSchema from "../../schemas/guildSettingsSchema.js";
 import {BotClient} from "types";
+import {Emojis} from "../../utility.js";
 import Parser from "rss-parser";
 import {TextChannel} from "discord.js";
-import {Emojis} from "../../utility.js";
+import guildSettingsSchema from "../../schemas/guildSettingsSchema.js";
 
 const parser = new Parser();
 
@@ -15,7 +15,7 @@ export default (client: BotClient) => {
 				let index = 0;
 				for (const channel of guild.youtube.channels) {
 					const channelData = await parser.parseURL(
-						`https://www.youtube.com/feeds/videos.xml?channel_id=${channel.youtubeChannelID}`
+						`https://www.youtube.com/feeds/videos.xml?channel_id=${channel.youtubeChannelID}`,
 					);
 
 					const channelPage = await fetch(`https://www.youtube.com/channel/${channel.youtubeChannelID}`);
@@ -23,7 +23,7 @@ export default (client: BotClient) => {
 					const channelPageHTML = await channelPage.text();
 
 					const channelProfilePictureURLs = channelPageHTML.match(
-						/(?<=\{"url":"https:\/\/yt3\.googleusercontent\.com\/)(ytc\/)?[a-zA-Z_=0-9-]+(?=","width":\d+,"height":\d+\})/g
+						/(?<=\{"url":"https:\/\/yt3\.googleusercontent\.com\/)(ytc\/)?[a-zA-Z_=0-9-]+(?=","width":\d+,"height":\d+\})/g,
 					);
 
 					const channelProfilePictureURL = channelProfilePictureURLs?.[channelProfilePictureURLs?.length - 1];
@@ -38,7 +38,7 @@ export default (client: BotClient) => {
 						// When the owner or an admin adds a channel, the bot would have checked that the channel is not of type CategoryChannel or type ForumChannel.
 						// That means that the assertion that the channel is of type TextChannel is safe.
 						const discordChannel = (await discordGuild.channels.fetch(
-							channel.discordChannelID as string
+							channel.discordChannelID as string,
 						)) as TextChannel;
 
 						const {title, link, author, isoDate} = channelData.items[0];
@@ -58,15 +58,15 @@ export default (client: BotClient) => {
 									author: {
 										name: author,
 										icon_url: `https://yt3.googleusercontent.com/${channelProfilePictureURL}`,
-										url: `${channelData.link}/?sub_confirmation=1`
+										url: `${channelData.link}/?sub_confirmation=1`,
 									},
 									footer: {
 										text: "YouTube",
 										icon_url:
-											"https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/1024px-YouTube_full-color_icon_%282017%29.svg.png"
-									}
-								}
-							]
+											"https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/1024px-YouTube_full-color_icon_%282017%29.svg.png",
+									},
+								},
+							],
 						});
 					}
 					index++;
